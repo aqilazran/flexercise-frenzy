@@ -275,9 +275,13 @@
     }
 
     // Function managing what happens when a patient selects an exercise mode
-    function selectGame(gameMode) {
-      alert(`Game Chosen: "${gameMode}". Ready to write the gameplay engine code whenever you want!`);
-    }
+function selectGame(gameMode) {
+  if (gameMode === 'up-down') {
+    window.location.href = 'flapper.html';
+  } else {
+    alert(`Game Chosen: "${gameMode}". We will build this mode next!`);
+  }
+}
   </script>
 
 </body>
