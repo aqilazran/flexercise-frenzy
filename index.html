@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Future Step</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ── Page canvas ── */
+    body {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(
+        180deg,
+        #1a0a3d 0%,
+        #2d1266 25%,
+        #6b21a8 60%,
+        #a855f7 82%,
+        #f0abfc 100%
+      );
+      font-family: 'Exo 2', sans-serif;
+      position: relative;
+    }
+
+    /* ════════════════════════════════
+       LAYER 1 — Stars
+    ════════════════════════════════ */
+    #star-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 65%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--dur, 2s) ease-in-out infinite alternate;
+      animation-delay: var(--delay, 0s);
+    }
+
+    @keyframes twinkle {
+      from { opacity: 0.2; transform: scale(0.7); }
+      to   { opacity: 1;   transform: scale(1.3); }
+    }
+
+    /* ════════════════════════════════
+       LAYER 2 — Clouds
+    ════════════════════════════════ */
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.13);
+      border-radius: 50px;
+      animation: drift var(--speed, 20s) linear infinite;
+      animation-delay: var(--start, 0s);
+      pointer-events: none;
+    }
+
+    .cloud-puff {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.11);
+      border-radius: 50%;
+    }
+
+    @keyframes drift {
+      from { transform: translateX(110vw); }
+      to   { transform: translateX(-340px); }
+    }
+
+    /* ════════════════════════════════
+       LAYER 3 — Scrolling trees
+    ════════════════════════════════ */
+    .tree-row {
+      position: absolute;
+      bottom: 86px;
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      animation: scrollTrees var(--speed, 16s) linear infinite;
+      animation-delay: var(--start, 0s);
+      pointer-events: none;
+    }
+
+    @keyframes scrollTrees {
+      from { transform: translateX(110vw); }
+      to   { transform: translateX(-260px); }
+    }
+
+    /* ════════════════════════════════
+       LAYER 4 — Ground
+    ════════════════════════════════ */
+    #ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 92px;
+      background: linear-gradient(180deg, #4ade80 0%, #16a34a 38%, #14532d 100%);
+      border-top: 3px solid #86efac;
+    }
+
+    /* ════════════════════════════════
+       LAYER 5 — Character
+    ════════════════════════════════ */
+    #character-wrap {
+      position: absolute;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      animation: bob 1.8s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      0%,  100% { transform: translateX(-50%) translateY(0px); }
+      50%        { transform: translateX(-50%) translateY(-8px); }
+    }
+
+    /* ════════════════════════════════
+       LAYER 6 — Title + Badge
+    ════════════════════════════════ */
+    #title-area {
+      position: absolute;
+      top: 28px;
+      width: 100%;
+      text-align: center;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    #game-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 5px;
+      text-shadow:
+        0 0 18px #a855f7,
+        0 0 40px #7c3aed,
+        2px 2px 0px #1a0a3d;
+    }
+
+    #anklesync-badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(168, 85, 247, 0.28);
+      border: 1px solid rgba(216, 180, 254, 0.5);
+      border-radius: 24px;
+      padding: 4px 18px;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: #e9d5ff;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════════
+       LAYER 7 — Play button
+    ════════════════════════════════ */
+    #play-wrap {
+      position: absolute;
+      bottom: 210px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      z-index: 30;
+    }
+
+    #play-btn {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border: 2px solid #e9d5ff;
+      border-radius: 50px;
+      padding: 15px 56px;
+      font-family: 'Orbitron', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      letter-spacing: 4px;
+      animation: pulseBtn 1.6s ease-in-out infinite;
+      transition: transform 0.12s ease;
+    }
+
+    #play-btn:hover  { transform: scale(1.07); }
+    #play-btn:active { transform: scale(0.97); }
+
+    @keyframes pulseBtn {
+      0%,  100% { box-shadow: 0 0 18px rgba(168,85,247,0.55), 0 4px 14px rgba(0,0,0,0.4); }
+      50%        { box-shadow: 0 0 38px rgba(168,85,247,0.9),  0 6px 22px rgba(0,0,0,0.5); }
+    }
+
+    /* ════════════════════════════════
+       LAYER 8 — Ankle hint (footer)
+    ════════════════════════════════ */
+    #ankle-hint {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      z-index: 30;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Star layer ── -->
+  <div id="star-layer"></div>
+
+  <!-- ── Clouds ── -->
+  <div class="cloud" style="width:130px; height:32px; top:55px; --speed:19s; --start:0s;">
+    <div class="cloud-puff" style="width:65px; height:55px; top:-24px; left:22px;"></div>
+    <div class="cloud-puff" style="width:44px; height:38px; top:-18px; left:62px;"></div>
+  </div>
+  <div class="cloud" style="width:95px;  height:24px; top:105px; --speed:26s; --start:-11s;">
+    <div class="cloud-puff" style="width:48px; height:42px; top:-20px; left:16px;"></div>
+  </div>
+  <div class="cloud" style="width:160px; height:38px; top:32px;  --speed:33s; --start:-6s;">
+    <div class="cloud-puff" style="width:75px; height:58px; top:-28px; left:32px;"></div>
+    <div class="cloud-puff" style="width:52px; height:42px; top:-20px; left:78px;"></div>
+  </div>
+  <div class="cloud" style="width:110px; height:28px; top:78px;  --speed:22s; --start:-16s;">
+    <div class="cloud-puff" style="width:55px; height:48px; top:-22px; left:18px;"></div>
+    <div class="cloud-puff" style="width:38px; height:34px; top:-16px; left:58px;"></div>
+  </div>
+
+  <!-- ── Tree rows (3 groups, different speeds for depth) ── -->
+  <div class="tree-row" style="--speed:14s; --start:0s;">
+    <svg width="44" height="76" viewBox="0 0 44 76">
+      <rect x="18" y="54" width="8"  height="22" rx="2" fill="#854d0e"/>
+      <polygon points="22,4  4,36 40,36"  fill="#166534"/>
+      <polygon points="22,20 4,54 40,54"  fill="#15803d"/>
+    </svg>
+    <svg width="32" height="58" viewBox="0 0 32 58">
+      <rect x="13" y="42" width="6"  height="16" rx="2" fill="#854d0e"/>
+      <polygon points="16,4  2,28 30,28"  fill="#166534"/>
+      <polygon points="16,18 2,42 30,42"  fill="#15803d"/>
+    </svg>
+  </div>
+
+  <div class="tree-row" style="--speed:21s; --start:-9s;">
+    <svg width="54" height="88" viewBox="0 0 54 88">
+      <rect x="22" y="62" width="10" height="26" rx="2" fill="#92400e"/>
+      <polygon points="27,4  4,42 50,42"  fill="#14532d"/>
+      <polygon points="27,24 4,62 50,62"  fill="#166534"/>
+    </svg>
+  </div>
+
+  <div class="tree-row" style="--speed:17s; --start:-4s;">
+    <svg width="38" height="66" viewBox="0 0 38 66">
+      <rect x="15" y="48" width="8"  height="18" rx="2" fill="#854d0e"/>
+      <polygon points="19,4  2,32 36,32"  fill="#166534"/>
+      <polygon points="19,18 2,48 36,48"  fill="#15803d"/>
+    </svg>
+    <svg width="30" height="52" viewBox="0 0 30 52">
+      <rect x="12" y="38" width="6"  height="14" rx="2" fill="#854d0e"/>
+      <polygon points="15,4  1,26 29,26"  fill="#166534"/>
+      <polygon points="15,16 1,38 29,38"  fill="#15803d"/>
+    </svg>
+    <svg width="44" height="76" viewBox="0 0 44 76">
+      <rect x="18" y="54" width="8"  height="22" rx="2" fill="#854d0e"/>
+      <polygon points="22,4  4,36 40,36"  fill="#166534"/>
+      <polygon points="22,20 4,54 40,54"  fill="#15803d"/>
+    </svg>
+  </div>
+
+  <!-- ── Ground ── -->
+  <div id="ground">
+    <svg width="100%" height="92" style="position:absolute; top:0; left:0; opacity:0.25;">
+      <line x1="0" y1="22" x2="100%" y2="22" stroke="#86efac" stroke-width="0.6"/>
+      <line x1="0" y1="50" x2="100%" y2="50" stroke="#86efac" stroke-width="0.6"/>
+      <line x1="0" y1="74" x2="100%" y2="74" stroke="#86efac" stroke-width="0.6"/>
+    </svg>
+  </div>
+
+  <!-- ── Character ── -->
+  <div id="character-wrap">
+    <svg width="64" height="116" viewBox="0 0 64 116">
+      <!-- Shadow -->
+      <ellipse cx="32" cy="114" rx="20" ry="4" fill="rgba(0,0,0,0.28)"/>
+      <!-- Legs -->
+      <rect x="22" y="80" width="8"  height="28" rx="3" fill="#7c3aed"/>
+      <rect x="34" y="80" width="8"  height="28" rx="3" fill="#7c3aed"/>
+      <!-- Feet -->
+      <rect x="18" y="102" width="14" height="8" rx="3" fill="#1e1b4b"/>
+      <rect x="30" y="102" width="14" height="8" rx="3" fill="#1e1b4b"/>
+      <!-- Body -->
+      <rect x="16" y="44" width="32" height="40" rx="7" fill="#a855f7"/>
+      <!-- Chest badge -->
+      <rect x="22" y="54" width="20" height="10" rx="3" fill="#e9d5ff"/>
+      <text x="32" y="62" text-anchor="middle"
+            font-size="5.5" font-weight="700"
+            fill="#7c3aed" font-family="monospace">STEP</text>
+      <!-- Arms -->
+      <rect x="4"  y="46" width="12" height="7" rx="3" fill="#a855f7"/>
+      <rect x="48" y="46" width="12" height="7" rx="3" fill="#a855f7"/>
+      <!-- Neck -->
+      <rect x="27" y="36" width="10" height="10" rx="3" fill="#fcd34d"/>
+      <!-- Head -->
+      <rect x="16" y="12" width="32" height="28" rx="9" fill="#fcd34d"/>
+      <!-- Eyes -->
+      <rect x="20" y="20" width="7" height="7" rx="2" fill="white"/>
+      <rect x="37" y="20" width="7" height="7" rx="2" fill="white"/>
+      <rect x="22" y="22" width="3.5" height="3.5" rx="1" fill="#1e1b4b"/>
+      <rect x="39" y="22" width="3.5" height="3.5" rx="1" fill="#1e1b4b"/>
+      <!-- Smile -->
+      <path d="M24 33 Q32 39 40 33"
+            stroke="#92400e" stroke-width="1.8"
+            fill="none" stroke-linecap="round"/>
+      <!-- Helmet -->
+      <rect x="16" y="10" width="32" height="12" rx="6"  fill="#7c3aed"/>
+      <rect x="21" y="5"  width="8"  height="10" rx="4"  fill="#a855f7"/>
+      <rect x="35" y="5"  width="8"  height="10" rx="4"  fill="#a855f7"/>
+      <!-- Antenna -->
+      <line x1="32" y1="5" x2="32" y2="0"
+            stroke="#e9d5ff" stroke-width="1.5"/>
+      <circle cx="32" cy="0" r="3" fill="#f0abfc"/>
+    </svg>
+  </div>
+
+  <!-- ── Title + Badge ── -->
+  <div id="title-area">
+    <div id="game-title">FUTURE STEP</div>
+    <div id="anklesync-badge">⚡ Powered by AnkleSync</div>
+  </div>
+
+  <!-- ── Play button ── -->
+  <div id="play-wrap">
+    <button id="play-btn" onclick="window.location.href='select.html'">
+      ▶ &nbsp;PLAY
+    </button>
+  </div>
+
+  <!-- ── Ankle hint ── -->
+  <div id="ankle-hint">Control with your ankle movement</div>
+
+  <!-- ── JavaScript: spawn stars ── -->
+  <script>
+    const starLayer = document.getElementById('star-layer');
+
+    for (let i = 0; i < 65; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+
+      const size  = (Math.random() * 2.4 + 0.8).toFixed(1);
+      const top   = (Math.random() * 100).toFixed(1);
+      const left  = (Math.random() * 100).toFixed(1);
+      const dur   = (1.4 + Math.random() * 2.2).toFixed(2);
+      const delay = (Math.random() * 2.5).toFixed(2);
+
+      star.style.cssText = `
+        width: ${size}px;
+        height: ${size}px;
+        top: ${top}%;
+        left: ${left}%;
+        --dur: ${dur}s;
+        --delay: ${delay}s;
+      `;
+
+      starLayer.appendChild(star);
+    }
+  </script>
+
+</body>
+</html>
