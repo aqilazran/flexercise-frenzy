@@ -275,13 +275,19 @@
     }
 
     // Function managing what happens when a patient selects an exercise mode
-function selectGame(gameMode) {
-  if (gameMode === 'up-down') {
-    window.location.href = 'flapper.html';
-  } else {
-    alert(`Game Chosen: "${gameMode}". We will build this mode next!`);
-  }
-}
+// Function managing what happens when a patient selects an exercise mode
+    function selectGame(gameMode) {
+      if (gameMode === 'left-right') {
+        // Points to Temple Sprint (Inversion / Eversion)
+        window.location.href = 'game3.html';
+      } else if (gameMode === 'up-down') {
+        // Points to Sky High Flapper (Dorsi / Plantarflexion)
+        window.location.href = 'game2.html';
+      } else if (gameMode === 'swing') {
+        // Fallback or third game if needed, currently pointing to game2
+        window.location.href = 'game2.html';
+      }
+    }
   </script>
 
 </body>
