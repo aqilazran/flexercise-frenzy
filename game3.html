@@ -67,7 +67,6 @@
     const W = canvas.width;
     const H = canvas.height;
 
-    // Game state tracking parameters
     let score = 0;
     let moveCount = 0;
     let leftMoves = 0;
@@ -75,30 +74,26 @@
     let gameOver = false;
     let started = false;
 
-    // Perspective Track configuration lines
-    const horizonY = 160; // Distance point where road begins
+    const horizonY = 160; 
     const roadBottomY = H;
     
-    // Player configuration variables
-    let currentLane = 1; // 0=Left, 1=Center, 2=Right
-    let prevLane = 1;
-    let laneT = 1.0; // Interpolation tracking parameter
+    let currentLane = 1; 
+    let prevLane = 1; 
+    let laneT = 1.0; 
 
-    // Lane X positions evaluated at the base of the viewport window
     const playerBaseY = H - 65; 
     const playerLanesX =;
 
-    // Obstacle tracking arrays
     const obstacles = [];
     let spawnTimer = 0;
-    let spawnInterval = 90; // Frame pacing rate for speed control
-    let gameSpeed = 0.012; // Velocity coefficient down the 3D grid line
+    let spawnInterval = 90; 
+    let gameSpeed = 0.012; 
 
     function spawnObstacle() {
-      const lane = Math.floor(Math.random() * 3);
+      const lane = Math.floor(Math.random() * 3); 
       obstacles.push({
         lane: lane,
-        progress: 0, // Starts at 0 (horizon distance point) and animates up to 1 (reaches player at bottom screen boundary)
+        progress: 0, 
         passed: false
       });
     }
@@ -121,71 +116,67 @@
       document.getElementById('hud-moves').textContent = '0';
     }
 
-    // Lane Movement Triggers
     function moveLeft() {
-      if(gameOver || !started) return;
+      if(gameOver || !started) return; 
       if(currentLane > 0) {
-        prevLane = currentLane; currentLane--; laneT = 0;
-        moveCount++; leftMoves++;
-        document.getElementById('hud-moves').textContent = moveCount;
+        prevLane = currentLane; currentLane--; laneT = 0; 
+        moveCount++; leftMoves++; 
+        document.getElementById('hud-moves').textContent = moveCount; 
       }
     }
     function moveRight() {
-      if(gameOver || !started) return;
+      if(gameOver || !started) return; 
       if(currentLane < 2) {
-        prevLane = currentLane; currentLane++; laneT = 0;
-        moveCount++; rightMoves++;
-        document.getElementById('hud-moves').textContent = moveCount;
+        prevLane = currentLane; currentLane++; laneT = 0; 
+        moveCount++; rightMoves++; 
+        document.getElementById('hud-moves').textContent = moveCount; 
       }
     }
 
-    // Input handlers
     document.addEventListener('keydown', e => {
-      if(!started) { started = true; return; }
+      if(!started) { started = true; return; } 
       if(gameOver) return;
-      if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') moveLeft();
-      if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') moveRight();
+      if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') moveLeft(); 
+      if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') moveRight(); 
     });
 
     canvas.addEventListener('click', e => {
-      if(!started) { started = true; return; }
+      if(!started) { started = true; return; } 
       if(gameOver) {
         const rect = canvas.getBoundingClientRect();
-        const cx = (e.clientX - rect.left) * (W / rect.width);
-        const cy = (e.clientY - rect.top) * (H / rect.height);
-        if(cx > W/2 - 200 && cx < W/2 - 22 && cy > H/2 + 158 && cy < H/2 + 200) resetGame();
-        if(cx > W/2 + 22 && cx < W/2 + 200 && cy > H/2 + 158 && cy < H/2 + 200) window.location.href = 'select.html';
+        const cx = (e.clientX - rect.left) * (W / rect.width); 
+        const cy = (e.clientY - rect.top) * (H / rect.height); 
+        if(cx > W/2 - 200 && cx < W/2 - 22 && cy > H/2 + 158 && cy < H/2 + 200) resetGame(); 
+        if(cx > W/2 + 22 && cx < W/2 + 200 && cy > H/2 + 158 && cy < H/2 + 200) window.location.href = 'select.html'; 
         return;
       }
       
-      // Screen split click fallback zones for touch deployment tests
       const rect = canvas.getBoundingClientRect();
       const clickX = (e.clientX - rect.left) * (W / rect.width);
       if(clickX < W/2) moveLeft();
       else moveRight();
     });
 
-    // Main Engine Framework Loop
     function updateAndRender(time) {
-      ctx.clearRect(0, 0, W, H);
+      ctx.clearRect(0, 0, W, H); 
 
-      // Draw background space sky structure gradient
-      let skyGrd = ctx.createLinearGradient(0, 0, 0, horizonY);
-      skyGrd.addColorStop(0, '#050112');
-      skyGrd.addColorStop(1, '#160833');
-      ctx.fillStyle = skyGrd;
-      ctx.fillRect(0, 0, W, horizonY);
+      // Draw background space sky
+      let skyGrd = ctx.createLinearGradient(0, 0, 0, horizonY); 
+      skyGrd.addColorStop(0, '#050112'); 
+      skyGrd.addColorStop(1, '#160833'); 
+      ctx.fillStyle = skyGrd; 
+      ctx.fillRect(0, 0, W, horizonY); 
 
-      // Draw starry ambient universe elements
-      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      // Stars
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
       for(let i=0; i<25; i++) {
-        let sx = (Math.sin(i * 4321 + time * 0.0005) * 0.5 + 0.5) * W;
-        let sy = ((i * 7654) % horizonY);
-        ctx.fillRect(sx, sy, 1.5, 1.5);
+        let sx = (Math.sin(i * 4321 + time * 0.0005) * 0.5 + 0.5) * W; 
+        let sy = ((i * 7654) % horizonY); 
+        ctx.fillRect(sx, sy, 1.5, 1.5); 
       }
 
-      // Draw 3D road lines extending outwards from horizon point
-      ctx.fillStyle = '#0b0526';
+      // Draw 3D road lines
+      ctx.fillStyle = '#0b0526'; 
       ctx.beginPath();
       ctx.moveTo(W/2 - 40, horizonY);
       ctx.lineTo(W/2 + 40, horizonY);
@@ -194,27 +185,24 @@
       ctx.closePath();
       ctx.fill();
 
-      // Draw futuristic cyber track lane dividers
-      ctx.strokeStyle = '#3b1d75';
-      ctx.lineWidth = 2;
-      
+      // Cyber lane lines
       const horizonLanesX = [W/2 - 25, W/2, W/2 + 25];
       const bottomLanesX =;
 
-      // Draw border walls
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(W/2 - 35, horizonY); ctx.lineTo(60, roadBottomY); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W/2 + 35, horizonY); ctx.lineTo(W - 60, roadBottomY); ctx.stroke();
+      // Draw border walls 
+      ctx.strokeStyle = '#a855f7'; 
+      ctx.lineWidth = 3; 
+      ctx.beginPath(); ctx.moveTo(W/2 - 35, horizonY); ctx.lineTo(60, roadBottomY); ctx.stroke(); 
+      ctx.beginPath(); ctx.moveTo(W/2 + 35, horizonY); ctx.lineTo(W - 60, roadBottomY); ctx.stroke(); 
 
-      // Draw perspective segment lines moving towards player
-      ctx.strokeStyle = 'rgba(168,85,247,0.25)';
-      ctx.lineWidth = 1;
-      let lineOffset = (time * 0.05) % 40;
+      // Draw horizontal perspective grids
+      ctx.strokeStyle = 'rgba(168,85,247,0.25)'; 
+      ctx.lineWidth = 1; 
+      let lineOffset = (time * 0.05) % 40; 
       for(let y = horizonY; y < H; y += 30) {
         let currentY = y + (lineOffset * ((y - horizonY) / (H - horizonY)));
         if(currentY < H) {
-          let ratio = (currentY - horizonY) / (H - horizonY);
+          let ratio = (currentY - horizonY) / (H - horizonY); 
           let leftX = (W/2 - 35) + (60 - (W/2 - 35)) * ratio;
           let rightX = (W/2 + 35) + ((W - 60) - (W/2 + 35)) * ratio;
           ctx.beginPath(); ctx.moveTo(leftX, currentY); ctx.lineTo(rightX, currentY); ctx.stroke();
@@ -222,126 +210,117 @@
       }
 
       if(!started) {
-        // Welcome View Overlay
-        ctx.fillStyle = 'rgba(5,1,18,0.65)'; ctx.fillRect(0,0,W,H);
-        ctx.fillStyle = '#fff'; ctx.font = "bold 32px 'Orbitron'"; ctx.textAlign = 'center';
-        ctx.fillText("NEON RUSH", W/2, H/2 - 20);
-        ctx.fillStyle = '#00f5d4'; ctx.font = "600 16px 'Exo 2'";
-        ctx.fillText("PRESS ANY ARROW KEY OR CLICK TO START EXERCISE", W/2, H/2 + 25);
-        requestAnimationFrame(updateAndRender);
+        // Draw character and assets dynamically behind the overlay so it's visible!
+        ctx.fillStyle = '#00f5d4';
+        ctx.beginPath();
+        ctx.moveTo(W/2, playerBaseY - 35);
+        ctx.lineTo(W/2 - 22, playerBaseY + 10);
+        ctx.lineTo(W/2 + 22, playerBaseY + 10);
+        ctx.closePath(); ctx.fill();
+
+        // Start Text Overlay
+        ctx.fillStyle = 'rgba(5,1,18,0.75)'; ctx.fillRect(0,0,W,H); 
+        ctx.fillStyle = '#fff'; ctx.font = "bold 32px 'Orbitron'"; ctx.textAlign = 'center'; 
+        ctx.fillText("NEON RUSH", W/2, H/2 - 20); 
+        ctx.fillStyle = '#00f5d4'; ctx.font = "600 16px 'Exo 2'"; 
+        ctx.fillText("PRESS ANY ARROW KEY OR CLICK TO START", W/2, H/2 + 25); 
+        requestAnimationFrame(updateAndRender); 
         return;
       }
 
       if(gameOver) {
-        // Workout Stats Breakdown Evaluation Block
-        ctx.fillStyle = 'rgba(5,1,18,0.85)'; ctx.fillRect(0, 0, W, H);
-        ctx.fillStyle = '#ff3366'; ctx.font = "bold 34px 'Orbitron'"; ctx.textAlign = 'center';
-        ctx.fillText("EXERCISE COMPLETED", W/2, H/2 - 110);
+        ctx.fillStyle = 'rgba(5,1,18,0.9)'; ctx.fillRect(0, 0, W, H); 
+        ctx.fillStyle = '#ff3366'; ctx.font = "bold 34px 'Orbitron'"; ctx.textAlign = 'center'; 
+        ctx.fillText("EXERCISE COMPLETED", W/2, H/2 - 110); 
         
-        ctx.fillStyle = '#fff'; ctx.font = "16px 'Exo 2'";
-        ctx.fillText(`Final Score: ${score} points`, W/2, H/2 - 65);
-        ctx.fillText(`Total Repetition Count: ${moveCount} movements`, W/2, H/2 - 40);
+        ctx.fillStyle = '#fff'; ctx.font = "16px 'Exo 2'"; 
+        ctx.fillText(`Final Score: ${score} points`, W/2, H/2 - 65); 
+        ctx.fillText(`Total Repetition Count: ${moveCount} movements`, W/2, H/2 - 40); 
         
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-        ctx.fillRect(W/2 - 180, H/2 - 20, 360, 130);
-        ctx.strokeStyle = 'rgba(168,85,247,0.4)'; ctx.strokeRect(W/2 - 180, H/2 - 20, 360, 130);
+        ctx.fillStyle = 'rgba(255,255,255,0.05)'; 
+        ctx.fillRect(W/2 - 180, H/2 - 20, 360, 130); 
+        ctx.strokeStyle = 'rgba(168,85,247,0.4)'; ctx.strokeRect(W/2 - 180, H/2 - 20, 360, 130); 
         
-        ctx.fillStyle = '#00f5d4'; ctx.font = "600 13px 'Orbitron'"; ctx.textAlign = 'left';
-        ctx.fillText("REHAB BREAKDOWN LOG:", W/2 - 150, H/2 + 10);
-        ctx.fillStyle = '#fff'; ctx.font = "14px 'Exo 2'";
-        ctx.fillText(`• Inversion Moves (Left):  ${leftMoves}`, W/2 - 150, H/2 + 45);
-        ctx.fillText(`• Eversion Moves (Right):  ${rightMoves}`, W/2 - 150, H/2 + 75);
+        ctx.fillStyle = '#00f5d4'; ctx.font = "bold 13px 'Orbitron'"; ctx.textAlign = 'left'; 
+        ctx.fillText("REHAB BREAKDOWN LOG:", W/2 - 150, H/2 + 10); 
+        ctx.fillStyle = '#fff'; ctx.font = "14px 'Exo 2'"; 
+        ctx.fillText(`• Inversion Moves (Left):  ${leftMoves}`, W/2 - 150, H/2 + 45); 
+        ctx.fillText(`• Eversion Moves (Right):  ${rightMoves}`, W/2 - 150, H/2 + 75); 
         
-        // Buttons
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#a855f7'; ctx.fillRect(W/2 - 200, H/2 + 158, 178, 42);
-        ctx.fillStyle = '#1f2937'; ctx.fillRect(W/2 + 22, H/2 + 158, 178, 42);
-        ctx.fillStyle = '#fff'; ctx.font = "bold 13px 'Orbitron'";
-        ctx.fillText("RETRY MODE", W/2 - 111, H/2 + 184);
-        ctx.fillText("MAIN MENU", W/2 + 111, H/2 + 184);
+        ctx.textAlign = 'center'; 
+        ctx.fillStyle = '#a855f7'; ctx.fillRect(W/2 - 200, H/2 + 158, 178, 42); 
+        ctx.fillStyle = '#1f2937'; ctx.fillRect(W/2 + 22, H/2 + 158, 178, 42); 
+        ctx.fillStyle = '#fff'; ctx.font = "bold 13px 'Orbitron'"; 
+        ctx.fillText("RETRY MODE", W/2 - 111, H/2 + 184); 
+        ctx.fillText("MAIN MENU", W/2 + 111, H/2 + 184); 
         
-        requestAnimationFrame(updateAndRender);
+        requestAnimationFrame(updateAndRender); 
         return;
       }
 
-      // Smooth interpolation of player tracking position along paths
-      if(laneT < 1.0) { laneT += 0.18; if(laneT > 1.0) laneT = 1.0; }
-      let pX = playerLanesX[prevLane] + (playerLanesX[currentLane] - playerLanesX[prevLane]) * laneT;
+      if(laneT < 1.0) { laneT += 0.18; if(laneT > 1.0) laneT = 1.0; } 
+      let pX = playerLanesX[prevLane] + (playerLanesX[currentLane] - playerLanesX[prevLane]) * laneT; 
 
-      // Dynamic spawn calculation adjustments over time intervals
       spawnTimer++;
-      if(spawnTimer % spawnInterval === 0) { spawnObstacle(); }
-      if(spawnTimer > 400 && spawnTimer % 300 === 0) {
-        if(spawnInterval > 50) spawnInterval -= 6;
-        gameSpeed += 0.001;
+      if(spawnTimer % spawnInterval === 0) { spawnObstacle(); } 
+      if(spawnTimer > 400 && spawnTimer % 300 === 0) { 
+        if(spawnInterval > 50) spawnInterval -= 6; 
+        gameSpeed += 0.001; 
       }
 
-      // Process obstacles: Incoming from top center distance, moving DOWNWARD towards player
       for(let i = obstacles.length - 1; i >= 0; i--) {
         let obs = obstacles[i];
         obs.progress += gameSpeed;
 
-        // Linear interpolation of X and Y path vectors based on depth percentage
         let currentY = horizonY + (roadBottomY - horizonY) * obs.progress;
-        
-        // Determine center X tracking path based on progress away from horizon node
         let startX = horizonLanesX[obs.lane];
         let endX = playerLanesX[obs.lane];
         let currentX = startX + (endX - startX) * obs.progress;
 
-        // Scale obstacles up as they approach the foreground
         let scaleSize = 8 + (50 * obs.progress); 
 
-        // Score check triggers once it safely clears player depth threshold
         if(!obs.passed && currentY > playerBaseY + 20) {
           obs.passed = true;
-          score += 10;
-          document.getElementById('hud-score').textContent = score;
+          score += 10; 
+          document.getElementById('hud-score').textContent = score; 
         }
 
-        // Drop out-of-bounds vectors safely
         if(obs.progress >= 1.05) {
-          obstacles.splice(i, 1);
-          continue;
+          obstacles.splice(i, 1); 
+          continue; 
         }
 
-        // Draw danger asset node block
-        ctx.fillStyle = '#ff0055';
-        ctx.strokeStyle = '#ff99bb';
-        ctx.lineWidth = 2;
-        ctx.fillRect(currentX - scaleSize/2, currentY - scaleSize, scaleSize, scaleSize);
-        ctx.strokeRect(currentX - scaleSize/2, currentY - scaleSize, scaleSize, scaleSize);
+        ctx.fillStyle = '#ff0055'; 
+        ctx.strokeStyle = '#ff99bb'; 
+        ctx.lineWidth = 2; 
+        ctx.fillRect(currentX - scaleSize/2, currentY - scaleSize, scaleSize, scaleSize); 
+        ctx.strokeRect(currentX - scaleSize/2, currentY - scaleSize, scaleSize, scaleSize); 
 
-        // 2D Collision Box intersection model evaluation checks
         if(obs.progress > 0.82 && obs.progress < 0.98) {
           if(obs.lane === currentLane) {
-            gameOver = true;
+            gameOver = true; 
           }
         }
       }
 
-      // Draw Player Character Object
-      ctx.fillStyle = '#00f5d4';
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      
+      // Draw Ship
+      ctx.fillStyle = '#00f5d4'; 
+      ctx.strokeStyle = '#fff'; 
+      ctx.lineWidth = 2; 
       ctx.beginPath();
       ctx.moveTo(pX, playerBaseY - 35);
       ctx.lineTo(pX - 22, playerBaseY + 10);
       ctx.lineTo(pX + 22, playerBaseY + 10);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.closePath(); ctx.fill(); ctx.stroke();
 
-      // Thruster flash logic visualization frame cycle engines
-      ctx.fillStyle = (time % 160 > 80) ? '#ff9f1c' : '#ff3366';
-      ctx.fillRect(pX - 6, playerBaseY + 11, 12, 6);
+      // Flame
+      ctx.fillStyle = (time % 160 > 80) ? '#ff9f1c' : '#ff3366'; 
+      ctx.fillRect(pX - 6, playerBaseY + 11, 12, 6); 
 
-      requestAnimationFrame(updateAndRender);
+      requestAnimationFrame(updateAndRender); 
     }
 
-    // Initialize layout engine loops
-    requestAnimationFrame(updateAndRender);
+    requestAnimationFrame(updateAndRender); 
   </script>
 </body>
 </html>
