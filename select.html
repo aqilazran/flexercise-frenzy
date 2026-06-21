@@ -63,7 +63,6 @@
       letter-spacing: 1px;
       margin-bottom: 8px;
     }
-    /* Targeted class for the subtitle text to prevent conflict with description */
     .card .card-subtitle {
       color: #f0abfc;
       font-size: 13px;
@@ -106,8 +105,12 @@
   <div class="menu-container">
     <div class="card" onclick="selectGame('left-right')">
       <div class="icon-box">
-        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2">
-          <path d="M2 12h20M6 7l-5 5 5 5M18 7l5 5-5 5"/>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="5" r="2" />
+          <path d="M7 13h5l1.5-4.5L11 6" />
+          <path d="M9 19V13" />
+          <path d="M15 13l-1.5 4.5L16 22" />
+          <path d="M12 9l3 3" />
         </svg>
       </div>
       <h3>Neon Rush</h3>
@@ -117,8 +120,10 @@
 
     <div class="card" onclick="selectGame('up-down')">
       <div class="icon-box">
-        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2">
-          <path d="M12 2v20M7 6l5-5 5 5M7 18l5 5 5-5"/>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2s3 3 3 9-3 9-3 9-3-3-3-9 3-9 3-9z" />
+          <path d="M9 13H3l3 3" />
+          <path d="M15 13h6l-3 3" />
         </svg>
       </div>
       <h3>Sky Patrol</h3>
@@ -128,8 +133,10 @@
 
     <div class="card" onclick="selectGame('swing')">
       <div class="icon-box">
-        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#6b21a8" stroke-width="2">
-          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#6b21a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M2 12c0-3.3 4.5-6 10-6s10 2.7 10 6-4.5 6-10 6-10-2.7-10-6Z" transform="rotate(-15 12 12)" />
+          <path d="M2 12c0-3.3 4.5-6 10-6s10 2.7 10 6-4.5 6-10 6-10-2.7-10-6Z" transform="rotate(45 12 12)" />
         </svg>
       </div>
       <h3>Circumduction</h3>
