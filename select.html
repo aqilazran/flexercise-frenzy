@@ -49,6 +49,9 @@
       cursor: pointer;
       transition: all 0.25s ease;
       box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .card:hover {
       transform: translateY(-8px);
@@ -80,7 +83,7 @@
       padding: 0 10px;
     }
     .icon-box {
-      margin: 20px auto;
+      margin-bottom: 20px;
       width: 70px;
       height: 70px;
       display: flex;
@@ -114,4 +117,50 @@
     <div class="card" onclick="selectGame('left-right')">
       <div class="icon-box">
         <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2">
-          <path d="M2 12h20M6 7l-5
+          <path d="M2 12h20M6 7l-5 5 5 5M18 7l5 5-5 5"/>
+        </svg>
+      </div>
+      <h3>Neon Rush</h3>
+      <p class="game-type">Inversion / Eversion</p>
+      <p class="card-desc">Steer your cosmic runner left and right down the 3D grid road to dodge neon obstacles.</p>
+    </div>
+
+    <div class="card" onclick="selectGame('up-down')">
+      <div class="icon-box">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2">
+          <path d="M12 2v20M7 6l5-5 5 5M7 18l5 5 5-5"/>
+        </svg>
+      </div>
+      <h3>Sky Patrol</h3>
+      <p class="game-type">Dorsi / Plantarflexion</p>
+      <p class="card-desc">Navigate your ship up and down to collect energy gates and dodge incoming storms.</p>
+    </div>
+
+    <div class="card" onclick="selectGame('swing')">
+      <div class="icon-box">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#6b21a8" stroke-width="2">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+        </svg>
+      </div>
+      <h3>Circumduction</h3>
+      <p class="game-type">Full Ankle Rotation</p>
+      <p class="card-desc">Rotate your ankle in full circles to sweep away orbital space debris.</p>
+    </div>
+  </div>
+
+  <button class="btn-back" onclick="window.location.href='index.html'">← RETURN TO START</button>
+
+  <script>
+    function selectGame(gameMode) {
+      if (gameMode === 'left-right') {
+        window.location.href = 'game3.html';
+      } else if (gameMode === 'up-down') {
+        window.location.href = 'game2.html';
+      } else if (gameMode === 'swing') {
+        window.location.href = 'game2.html';
+      }
+    }
+  </script>
+
+</body>
+</html>
