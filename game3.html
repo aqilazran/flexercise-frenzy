@@ -34,7 +34,7 @@
       background: #09041e;
       border: 2px solid #a855f7;
       border-radius: 12px;
-      box-shadow: 0 0 25px rgba(168,85,247,0.3);
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.3);
       display: block;
     }
     #rehab-ctrl {
@@ -199,12 +199,11 @@
           let ratio = (currentY - horizonY) / (H - horizonY); 
           let leftX = (W/2 - 35) + (60 - (W/2 - 35)) * ratio;
           let rightX = (W/2 + 35) + ((W - 60) - (W/2 + 35)) * ratio;
-          ctx.beginPath(); ctx.moveTo(leftX, currentY); ctx.lineTo(rightX, currentY); stroke();
+          ctx.beginPath(); ctx.moveTo(leftX, currentY); ctx.lineTo(rightX, currentY); ctx.stroke();
         }
       }
 
       if(!started) {
-        // Render the background road, landscape, and ship BEFORE putting up the layout overlay text
         ctx.fillStyle = '#00f5d4'; 
         ctx.strokeStyle = '#fff'; 
         ctx.lineWidth = 2; 
