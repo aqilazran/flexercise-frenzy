@@ -49,9 +49,6 @@
       cursor: pointer;
       transition: all 0.25s ease;
       box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
     .card:hover {
       transform: translateY(-8px);
@@ -66,7 +63,7 @@
       letter-spacing: 1px;
       margin-bottom: 8px;
     }
-    .card .game-type {
+    .card p {
       color: #f0abfc;
       font-size: 13px;
       font-weight: 600;
@@ -74,16 +71,18 @@
       text-transform: uppercase;
       margin-bottom: 15px;
     }
-    .card-desc {
-      font-family: 'Exo 2', sans-serif;
-      font-size: 13px;
+    /* This makes sure all descriptive labels inside the cards show up perfectly white */
+    .card .description-text {
       color: #ffffff !important;
+      text-transform: none !important;
+      font-weight: 400 !important;
+      font-size: 13px;
       line-height: 1.5;
       margin-top: 10px;
-      padding: 0 10px;
+      letter-spacing: 0px;
     }
     .icon-box {
-      margin-bottom: 20px;
+      margin: 20px auto;
       width: 70px;
       height: 70px;
       display: flex;
@@ -121,8 +120,8 @@
         </svg>
       </div>
       <h3>Neon Rush</h3>
-      <p class="game-type">Inversion / Eversion</p>
-      <p class="card-desc">Steer your cosmic runner left and right down the 3D grid road to dodge neon obstacles.</p>
+      <p>Inversion / Eversion</p>
+      <p class="description-text">Steer your cosmic runner left and right down the 3D grid road to dodge neon obstacles.</p>
     </div>
 
     <div class="card" onclick="selectGame('up-down')">
@@ -132,8 +131,8 @@
         </svg>
       </div>
       <h3>Sky Patrol</h3>
-      <p class="game-type">Dorsi / Plantarflexion</p>
-      <p class="card-desc">Navigate your ship up and down to collect energy gates and dodge incoming storms.</p>
+      <p>Dorsi / Plantarflexion</p>
+      <p class="description-text">Navigate your ship up and down to collect energy gates and dodge incoming storms.</p>
     </div>
 
     <div class="card" onclick="selectGame('swing')">
@@ -143,8 +142,8 @@
         </svg>
       </div>
       <h3>Circumduction</h3>
-      <p class="game-type">Full Ankle Rotation</p>
-      <p class="card-desc">Rotate your ankle in full circles to sweep away orbital space debris.</p>
+      <p>Full Ankle Rotation</p>
+      <p class="description-text">Rotate your ankle in full circles to sweep away orbital space debris.</p>
     </div>
   </div>
 
