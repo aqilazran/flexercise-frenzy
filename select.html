@@ -7,190 +7,454 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet" />
+
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      font-family: 'Exo 2', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      background-color: #120633; /* Deep purple fallback */
-    }
-
-    /* FIX: Separate moving background layer to prevent browser blank-screen glitched layer bugs */
-    body::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
-      height: 100%;
-      background: linear-gradient(125deg, #120633 0%, #1b0947 35%, #2a0e66 70%, #0d0426 100%);
-      background-size: 400% 400%;
-      animation: movingCosmos 16s ease infinite;
-      z-index: -1; /* Pushes background animation safely behind everything */
+      min-height: 100vh;
+      background: linear-gradient(
+        180deg,
+        #1a0a3d 0%,
+        #2d1266 25%,
+        #6b21a8 65%,
+        #a855f7 88%,
+        #f0abfc 100%
+      );
+      font-family: 'Exo 2', sans-serif;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ════════════════════════════════
+       Stars
+    ════════════════════════════════ */
+    #star-layer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       pointer-events: none;
+      z-index: 0;
     }
 
-    @keyframes movingCosmos {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--dur, 2s) ease-in-out infinite alternate;
+      animation-delay: var(--delay, 0s);
     }
 
-    h1 {
-      font-family: 'Orbitron', monospace;
-      color: white;
-      font-size: 32px;
-      letter-spacing: 4px;
-      margin-bottom: 40px;
-      text-shadow: 0 0 15px #a855f7;
+    @keyframes twinkle {
+      from { opacity: 0.2; transform: scale(0.7); }
+      to   { opacity: 1;   transform: scale(1.3); }
+    }
+
+    /* ════════════════════════════════
+       Clouds
+    ════════════════════════════════ */
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.13);
+      border-radius: 50px;
+      animation: drift var(--speed, 20s) linear infinite;
+      animation-delay: var(--start, 0s);
+      pointer-events: none;
       z-index: 1;
     }
-    
-    .menu-container {
-      display: flex;
-      gap: 30px;
-      max-width: 1000px;
-      width: 90%;
-      justify-content: center;
-      z-index: 1;
+    .cloud-puff {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.11);
+      border-radius: 50%;
     }
-    
-    .card {
-      background: rgba(43, 19, 92, 0.6);
-      border: 2px solid #6b21a8;
-      border-radius: 16px;
-      width: 280px;
-      padding: 30px 20px;
+    @keyframes drift {
+      from { transform: translateX(110vw); }
+      to   { transform: translateX(-340px); }
+    }
+
+    /* ════════════════════════════════
+       Header
+    ════════════════════════════════ */
+    #header {
+      position: relative;
+      z-index: 10;
       text-align: center;
+      padding: 36px 20px 8px;
+    }
+
+    #back-btn {
+      position: absolute;
+      left: 28px;
+      top: 38px;
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(216, 180, 254, 0.4);
+      border-radius: 50px;
+      padding: 8px 20px;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e9d5ff;
       cursor: pointer;
-      transition: all 0.25s ease;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      letter-spacing: 1px;
+      transition: background 0.2s, transform 0.15s;
     }
-    
-    .card:hover {
-      transform: translateY(-8px);
-      border-color: #a855f7;
-      box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
-      background: rgba(58, 25, 122, 0.8);
+    #back-btn:hover {
+      background: rgba(168, 85, 247, 0.4);
+      transform: translateX(-3px);
     }
-    
-    .card h3 {
+
+    #page-title {
       font-family: 'Orbitron', monospace;
-      color: #00f5d4;
-      font-size: 20px;
+      font-size: clamp(20px, 4vw, 34px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 4px;
+      text-shadow: 0 0 18px #a855f7, 0 0 36px #7c3aed;
+    }
+
+    #page-sub {
+      margin-top: 8px;
+      font-size: 14px;
+      color: rgba(233, 213, 255, 0.7);
+      letter-spacing: 1.5px;
+    }
+
+    /* ════════════════════════════════
+       Cards grid
+    ════════════════════════════════ */
+    #cards-grid {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 32px;
+      padding: 30px 28px 30px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .game-card {
+      background: rgba(30, 10, 70, 0.55);
+      border: 1.5px solid rgba(168, 85, 247, 0.4);
+      border-radius: 20px;
+      width: 320px;
+      padding: 0 0 28px;
+      cursor: pointer;
+      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+      overflow: hidden;
+      backdrop-filter: blur(6px);
+    }
+
+    .game-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      border-color: rgba(240, 171, 252, 0.8);
+      box-shadow: 0 16px 48px rgba(168, 85, 247, 0.45);
+    }
+
+    .card-preview {
+      width: 100%;
+      height: 180px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px 18px 0 0;
+    }
+
+    .card-body {
+      padding: 22px 26px 4px;
+    }
+
+    .card-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 12px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
       letter-spacing: 1px;
       margin-bottom: 8px;
     }
-    
-    .card .card-subtitle {
-      color: #f0abfc;
+
+    .card-desc {
       font-size: 13px;
+      color: rgba(233, 213, 255, 0.72);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .card-movement {
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      margin-bottom: 15px;
+      color: rgba(233, 213, 255, 0.5);
+      margin-bottom: 20px;
     }
-    
-    .icon-box {
-      margin: 20px auto;
-      width: 70px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .btn-back {
-      margin-top: 50px;
-      background: transparent;
-      border: 2px solid rgba(255,255,255,0.4);
-      color: rgba(255,255,255,0.6);
-      padding: 10px 24px;
-      border-radius: 30px;
+
+    .card-movement span { color: #f0abfc; }
+
+    .card-play-btn {
+      display: block;
+      width: calc(100% - 52px);
+      margin: 0 26px;
+      padding: 12px 0;
+      border: none;
+      border-radius: 50px;
       font-family: 'Orbitron', monospace;
       font-size: 13px;
-      cursor: pointer;
-      transition: 0.2s;
-      z-index: 1;
-    }
-    
-    .btn-back:hover {
-      border-color: white;
+      font-weight: 700;
+      letter-spacing: 3px;
       color: white;
-      box-shadow: 0 0 15px rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.12s;
+    }
+    .card-play-btn:hover  { opacity: 0.88; transform: scale(1.03); }
+    .card-play-btn:active { transform: scale(0.97); }
+
+    /* ── CARD 1 — Side Runner — teal ── */
+    .card-1 { border-color: rgba(34, 211, 238, 0.35); }
+    .card-1:hover { border-color: rgba(34, 211, 238, 0.8); box-shadow: 0 16px 48px rgba(34,211,238,0.25); }
+    .card-1 .card-tag  { background: rgba(34,211,238,0.15); color: #22d3ee; }
+    .card-1 .card-play-btn { background: linear-gradient(135deg, #0e7490, #22d3ee); }
+
+    .preview-1 { background: linear-gradient(180deg, #0c1a2e 0%, #0e4a6b 60%, #1a7a5e 100%); }
+
+    .road-line {
+      position: absolute; bottom: 0; width: 100%; height: 40px;
+      background: #1e3a2a;
+    }
+    .road-mark {
+      position: absolute; bottom: 15px; height: 6px; width: 36px;
+      background: rgba(255,255,255,0.35); border-radius: 3px;
+      animation: roadScroll 1.6s linear infinite;
+    }
+    @keyframes roadScroll {
+      from { transform: translateX(350px); }
+      to   { transform: translateX(-60px); }
+    }
+    .runner {
+      position: absolute; bottom: 40px; left: 50%;
+      transform: translateX(-50%);
+      animation: runnerDodge 3.2s ease-in-out infinite;
+    }
+    @keyframes runnerDodge {
+      0%,100% { left: 50%; }
+      30%      { left: 30%; }
+      70%      { left: 68%; }
+    }
+    .obstacle {
+      position: absolute; bottom: 40px;
+      animation: obstacleMove var(--spd, 2.2s) linear infinite;
+      animation-delay: var(--dly, 0s);
+    }
+    @keyframes obstacleMove {
+      from { left: 110%; }
+      to   { left: -20%; }
+    }
+
+    /* ── CARD 2 — Sky Patrol — amber ── */
+    .card-2 { border-color: rgba(251, 191, 36, 0.35); }
+    .card-2:hover { border-color: rgba(251,191,36,0.8); box-shadow: 0 16px 48px rgba(251,191,36,0.22); }
+    .card-2 .card-tag  { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .card-2 .card-play-btn { background: linear-gradient(135deg, #b45309, #fbbf24); }
+
+    .preview-2 { background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 50%, #0f4c2a 100%); }
+
+    .rock-obs {
+      position: absolute;
+      animation: rockDrift var(--spd, 2.6s) linear infinite;
+      animation-delay: var(--dly, 0s);
+    }
+    @keyframes rockDrift {
+      from { left: 110%; }
+      to   { left: -20%; }
+    }
+    .flyer {
+      position: absolute; left: 20%;
+      animation: flap 1.8s ease-in-out infinite;
+    }
+    @keyframes flap {
+      0%,100% { top: 28%; }
+      50%      { top: 60%; }
+    }
+
+    /* ════════════════════════════════
+       Footer
+    ════════════════════════════════ */
+    #footer-badge {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding-bottom: 32px;
+      font-size: 11px;
+      color: rgba(233, 213, 255, 0.35);
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
   </style>
 </head>
+
 <body>
 
-  <h1>SELECT EXERCISE MODE</h1>
+  <div id="star-layer"></div>
 
-  <div class="menu-container">
-    <div class="card" onclick="selectGame('left-right')">
-      <div class="icon-box">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="5" r="2" />
-          <path d="M7 13h5l1.5-4.5L11 6" />
-          <path d="M9 19V13" />
-          <path d="M15 13l-1.5 4.5L16 22" />
-          <path d="M12 9l3 3" />
-        </svg>
-      </div>
-      <h3>Neon Rush</h3>
-      <p class="card-subtitle">Inversion / Eversion</p>
-      <p style="color: #ffffff !important; text-transform: none !important; font-weight: 400 !important; font-size: 13px; line-height: 1.5; margin-top: 10px; letter-spacing: 0px;">Steer your cosmic runner left and right down the 3D grid road to dodge neon obstacles.</p>
-    </div>
-
-    <div class="card" onclick="selectGame('up-down')">
-      <div class="icon-box">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2s3 3 3 9-3 9-3 9-3-3-3-9 3-9 3-9z" />
-          <path d="M9 13H3l3 3" />
-          <path d="M15 13h6l-3 3" />
-        </svg>
-      </div>
-      <h3>Sky Patrol</h3>
-      <p class="card-subtitle">Dorsi / Plantarflexion</p>
-      <p style="color: #ffffff !important; text-transform: none !important; font-weight: 400 !important; font-size: 13px; line-height: 1.5; margin-top: 10px; letter-spacing: 0px;">Navigate your ship up and down to collect energy gates and dodge incoming storms.</p>
-    </div>
-
-    <div class="card" onclick="selectGame('swing')">
-      <div class="icon-box">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#6b21a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M2 12c0-3.3 4.5-6 10-6s10 2.7 10 6-4.5 6-10 6-10-2.7-10-6Z" transform="rotate(-15 12 12)" />
-          <path d="M2 12c0-3.3 4.5-6 10-6s10 2.7 10 6-4.5 6-10 6-10-2.7-10-6Z" transform="rotate(45 12 12)" />
-        </svg>
-      </div>
-      <h3>Circumduction</h3>
-      <p class="card-subtitle">Full Ankle Rotation</p>
-      <p style="color: #ffffff !important; text-transform: none !important; font-weight: 400 !important; font-size: 13px; line-height: 1.5; margin-top: 10px; letter-spacing: 0px;">Rotate your ankle in full circles to sweep away orbital space debris.</p>
-    </div>
+  <!-- Clouds -->
+  <div class="cloud" style="width:130px; height:32px; top:55px; --speed:19s; --start:0s;">
+    <div class="cloud-puff" style="width:65px; height:55px; top:-24px; left:22px;"></div>
+    <div class="cloud-puff" style="width:44px; height:38px; top:-18px; left:62px;"></div>
+  </div>
+  <div class="cloud" style="width:95px;  height:24px; top:105px; --speed:26s; --start:-11s;">
+    <div class="cloud-puff" style="width:48px; height:42px; top:-20px; left:16px;"></div>
+  </div>
+  <div class="cloud" style="width:160px; height:38px; top:32px;  --speed:33s; --start:-6s;">
+    <div class="cloud-puff" style="width:75px; height:58px; top:-28px; left:32px;"></div>
+    <div class="cloud-puff" style="width:52px; height:42px; top:-20px; left:78px;"></div>
   </div>
 
-  <button class="btn-back" onclick="window.location.href='index.html'">← RETURN TO START</button>
+  <!-- Header -->
+  <div id="header">
+    <button id="back-btn" onclick="window.location.href='index.html'">← Back</button>
+    <div id="page-title">CHOOSE YOUR GAME</div>
+    <div id="page-sub">Select a mode to start your ankle training</div>
+  </div>
+
+  <!-- Cards -->
+  <div id="cards-grid">
+
+    <!-- CARD 1: Side Runner -->
+    <div class="game-card card-1" onclick="window.location.href='game1.html'">
+      <div class="card-preview preview-1">
+        <div class="road-line"></div>
+        <div class="road-mark" style="--dly:0s;"></div>
+        <div class="road-mark" style="--dly:0.5s;"></div>
+        <div class="road-mark" style="--dly:1.0s;"></div>
+        <div class="road-mark" style="--dly:1.5s;"></div>
+
+        <div class="obstacle" style="--spd:2.4s; --dly:0s;">
+          <svg width="24" height="44" viewBox="0 0 24 44">
+            <rect x="1" y="2" width="22" height="40" rx="11" fill="#ef4444"/>
+            <circle cx="12" cy="14" r="6" fill="#fff" opacity="0.85"/>
+            <circle cx="9" cy="13" r="1.6" fill="#1e1b4b"/>
+            <circle cx="15" cy="13" r="1.6" fill="#1e1b4b"/>
+            <path d="M8 18 Q12 21 16 18" stroke="#1e1b4b" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="obstacle" style="--spd:2.4s; --dly:1.2s;">
+          <svg width="24" height="44" viewBox="0 0 24 44">
+            <rect x="1" y="2" width="22" height="40" rx="11" fill="#f97316"/>
+            <circle cx="12" cy="14" r="6" fill="#fff" opacity="0.85"/>
+            <circle cx="9" cy="13" r="1.6" fill="#1e1b4b"/>
+            <circle cx="15" cy="13" r="1.6" fill="#1e1b4b"/>
+            <path d="M8 18 Q12 21 16 18" stroke="#1e1b4b" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="runner">
+          <svg width="28" height="52" viewBox="0 0 28 52">
+            <rect x="10" y="38" width="4" height="14" rx="2" fill="#7c3aed"/>
+            <rect x="16" y="38" width="4" height="14" rx="2" fill="#7c3aed"/>
+            <rect x="8"  y="52" width="8"  height="4"  rx="2" fill="#1e1b4b"/>
+            <rect x="14" y="52" width="8"  height="4"  rx="2" fill="#1e1b4b"/>
+            <rect x="6"  y="20" width="16" height="20" rx="4" fill="#a855f7"/>
+            <rect x="0"  y="22" width="6"  height="4"  rx="2" fill="#a855f7"/>
+            <rect x="22" y="22" width="6"  height="4"  rx="2" fill="#a855f7"/>
+            <rect x="10" y="16" width="8"  height="6"  rx="2" fill="#fcd34d"/>
+            <rect x="6"  y="4"  width="16" height="14" rx="5" fill="#fcd34d"/>
+            <rect x="8"  y="8"  width="4"  height="4"  rx="1" fill="white"/>
+            <rect x="16" y="8"  width="4"  height="4"  rx="1" fill="white"/>
+            <rect x="9"  y="9"  width="2"  height="2"  rx="0.5" fill="#1e1b4b"/>
+            <rect x="17" y="9"  width="2"  height="2"  rx="0.5" fill="#1e1b4b"/>
+            <rect x="6"  y="2"  width="16" height="6"  rx="3" fill="#7c3aed"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="card-tag">Mode 1</div>
+        <div class="card-title">SIDE RUNNER</div>
+        <div class="card-desc">Dodge friendly obstacles coming at you from the right. Move left or right to survive.</div>
+        <div class="card-movement">Ankle move: <span>Inversion &amp; Eversion</span></div>
+      </div>
+      <button class="card-play-btn">▶ &nbsp;PLAY</button>
+    </div>
+
+    <!-- CARD 2: Sky Patrol -->
+    <div class="game-card card-2" onclick="window.location.href='game2.html'">
+      <div class="card-preview preview-2">
+        <div class="rock-obs" style="top:25%; --spd:2.8s; --dly:0s;">
+          <svg width="36" height="36" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15" fill="#92400e"/>
+            <circle cx="13" cy="14" r="4" fill="#78350f" opacity="0.6"/>
+            <circle cx="24" cy="22" r="3" fill="#78350f" opacity="0.6"/>
+            <circle cx="13" cy="14" r="2" fill="#fff" opacity="0.85"/>
+            <circle cx="23" cy="13" r="2" fill="#fff" opacity="0.85"/>
+            <path d="M14 22 Q18 25 22 22" stroke="#451a03" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="rock-obs" style="top:60%; --spd:2.8s; --dly:1.4s;">
+          <svg width="30" height="30" viewBox="0 0 30 30">
+            <circle cx="15" cy="15" r="12" fill="#a16207"/>
+            <circle cx="11" cy="12" r="1.7" fill="#fff" opacity="0.85"/>
+            <circle cx="19" cy="12" r="1.7" fill="#fff" opacity="0.85"/>
+            <path d="M11 18 Q15 21 19 18" stroke="#451a03" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="flyer">
+          <svg width="40" height="32" viewBox="0 0 40 32">
+            <ellipse cx="20" cy="17" rx="17" ry="13" fill="#a855f7"/>
+            <ellipse cx="20" cy="24" rx="11" ry="5" fill="#7c3aed"/>
+            <circle cx="29" cy="13" r="5.5" fill="white"/>
+            <circle cx="30" cy="13" r="2.8" fill="#1e1b4b"/>
+            <polygon points="38,15 33,13 33,17" fill="#fbbf24"/>
+            <ellipse cx="17" cy="20" rx="8" ry="6" fill="#e9d5ff"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="card-tag">Mode 2</div>
+        <div class="card-title">SKY PATROL</div>
+        <div class="card-desc">Fly through 5 lanes, dodging friendly space rocks and drones along the way.</div>
+        <div class="card-movement">Ankle move: <span>Dorsi &amp; Plantar Flexion</span></div>
+      </div>
+      <button class="card-play-btn">▶ &nbsp;PLAY</button>
+    </div>
+
+  </div>
+
+  <div id="footer-badge">⚡ Powered by AnkleSync</div>
 
   <script>
-    function selectGame(gameMode) {
-      if (gameMode === 'left-right') {
-        window.location.href = 'game3.html';
-      } else if (gameMode === 'up-down') {
-        window.location.href = 'game2.html';
-      } {
-        window.location.href = 'game2.html';
-      }
+    const starLayer = document.getElementById('star-layer');
+    for (let i = 0; i < 55; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      const size  = (Math.random() * 2.2 + 0.7).toFixed(1);
+      const top   = (Math.random() * 100).toFixed(1);
+      const left  = (Math.random() * 100).toFixed(1);
+      const dur   = (1.4 + Math.random() * 2).toFixed(2);
+      const delay = (Math.random() * 2.5).toFixed(2);
+      star.style.cssText = `
+        width:${size}px; height:${size}px;
+        top:${top}%; left:${left}%;
+        --dur:${dur}s; --delay:${delay}s;
+      `;
+      starLayer.appendChild(star);
     }
   </script>
 
