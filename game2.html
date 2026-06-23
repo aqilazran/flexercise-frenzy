@@ -77,24 +77,26 @@ const ctx    = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
 /* ═══════════════════
-   STATE
+   STATE  ── SLOWED DOWN FOR REHAB PACING ──
 ═══════════════════ */
 let score=0, moveCount=0, upMoves=0, downMoves=0;
 let gameOver=false, started=false, frameCount=0;
-let speed=2.8, spawnTimer=0, spawnRate=100;
+let speed=1.5, spawnTimer=0, spawnRate=150;       // was 2.8 / 100
+const MAX_SPEED = 3.4;                             // was 7.5
+const DIFFICULTY_STEP_FRAMES = 750;                // was 450
 
 /* ═══════════════════
-   5 LANES  (horizontal rows)
+   5 LANES
 ═══════════════════ */
 const LANES = 5;
 const LANE_H = H / LANES;
 const LANE_Y = Array.from({length: LANES}, (_, i) => LANE_H * i + LANE_H / 2);
-let currentLane = 2; // start middle
+let currentLane = 2;
 let targetY = LANE_Y[2];
 let planeY  = LANE_Y[2];
 
 /* ═══════════════════
-   STARS (parallax bg)
+   STARS
 ═══════════════════ */
 const stars = Array.from({length: 90}, () => ({
   x: Math.random() * W,
@@ -111,7 +113,6 @@ function drawPlane(x, y) {
   ctx.save();
   ctx.translate(x, y);
 
-  // Engine glow trail
   const trail = ctx.createLinearGradient(-70, 0, -10, 0);
   trail.addColorStop(0, 'rgba(251,191,36,0)');
   trail.addColorStop(0.5, 'rgba(251,191,36,0.18)');
@@ -122,21 +123,19 @@ function drawPlane(x, y) {
   ctx.lineTo(-12, 5);  ctx.lineTo(-70, 5);
   ctx.fill();
 
-  // Exhaust flame
   ctx.fillStyle = '#f97316';
   ctx.beginPath();
   ctx.moveTo(-14, -4);
-  ctx.lineTo(-28 - Math.sin(frameCount*0.3)*6, 0);
+  ctx.lineTo(-28 - Math.sin(frameCount*0.2)*5, 0);
   ctx.lineTo(-14, 4);
   ctx.fill();
   ctx.fillStyle = '#fbbf24';
   ctx.beginPath();
   ctx.moveTo(-14, -2);
-  ctx.lineTo(-20 - Math.sin(frameCount*0.3)*4, 0);
+  ctx.lineTo(-20 - Math.sin(frameCount*0.2)*3, 0);
   ctx.lineTo(-14, 2);
   ctx.fill();
 
-  // Main fuselage
   ctx.fillStyle = '#a855f7';
   ctx.beginPath();
   ctx.moveTo(46, 0);
@@ -149,14 +148,12 @@ function drawPlane(x, y) {
   ctx.closePath();
   ctx.fill();
 
-  // Fuselage highlight stripe
   ctx.fillStyle = 'rgba(233,213,255,0.25)';
   ctx.beginPath();
   ctx.moveTo(40, 0); ctx.lineTo(18, -6); ctx.lineTo(-12, -6);
   ctx.lineTo(-16, -4); ctx.lineTo(-16, -1); ctx.lineTo(-12, -1);
   ctx.lineTo(18, -1); ctx.closePath(); ctx.fill();
 
-  // Main wing
   ctx.fillStyle = '#7c3aed';
   ctx.beginPath();
   ctx.moveTo(8, -10); ctx.lineTo(0, -36);
@@ -168,19 +165,16 @@ function drawPlane(x, y) {
   ctx.lineTo(-10, 36); ctx.lineTo(-16, 10);
   ctx.closePath(); ctx.fill();
 
-  // Wing detail lines
   ctx.strokeStyle = 'rgba(233,213,255,0.3)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(4, -10); ctx.lineTo(-2, -30); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(4, 10);  ctx.lineTo(-2, 30);  ctx.stroke();
 
-  // Tail fin
   ctx.fillStyle = '#7c3aed';
   ctx.beginPath();
   ctx.moveTo(-14, -10); ctx.lineTo(-20, -22);
   ctx.lineTo(-26, -22); ctx.lineTo(-20, -10);
   ctx.closePath(); ctx.fill();
 
-  // Cockpit window
   ctx.fillStyle = '#e9d5ff';
   ctx.beginPath();
   ctx.ellipse(28, -2, 10, 6, -0.2, 0, Math.PI*2);
@@ -192,7 +186,6 @@ function drawPlane(x, y) {
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.beginPath(); ctx.ellipse(26, -4, 3, 2, -0.4, 0, Math.PI*2); ctx.fill();
 
-  // Neon wing glow
   ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 14;
   ctx.strokeStyle = '#f0abfc'; ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -207,75 +200,105 @@ function drawPlane(x, y) {
 }
 
 /* ═══════════════════
-   DRAW ASTEROID
+   DRAW FRIENDLY ROCK CRITTER (replaces jagged asteroid)
 ═══════════════════ */
 function drawAsteroid(obs) {
+  const bob = Math.sin(frameCount * 0.07 + obs.bobSeed) * 3;
   ctx.save();
-  ctx.translate(obs.x, obs.y);
-  ctx.rotate(obs.rot);
+  ctx.translate(obs.x, obs.y + bob);
+  ctx.rotate(Math.sin(frameCount * 0.02 + obs.bobSeed) * 0.08);
 
+  const r = obs.r;
+
+  // Soft shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(0, r + 6, r * 0.7, r * 0.18, 0, 0, Math.PI*2); ctx.fill();
+
+  // Rounded blob body (slightly irregular but soft, no jagged edges)
   ctx.fillStyle = obs.color;
   ctx.beginPath();
-  obs.pts.forEach((p, i) => i===0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-  ctx.closePath(); ctx.fill();
+  ctx.moveTo(r, 0);
+  for (let i = 1; i <= 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    const wob = 1 + Math.sin(a * 3 + obs.bobSeed) * 0.08;
+    ctx.lineTo(Math.cos(a) * r * wob, Math.sin(a) * r * wob);
+  }
+  ctx.closePath();
+  ctx.fill();
 
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
-  ctx.stroke();
+  // Highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath();
+  ctx.ellipse(-r*0.3, -r*0.35, r*0.4, r*0.28, -0.4, 0, Math.PI*2);
+  ctx.fill();
 
-  // Crater details
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.beginPath(); ctx.arc(obs.r*0.2, -obs.r*0.2, obs.r*0.22, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(-obs.r*0.3, obs.r*0.3, obs.r*0.15, 0, Math.PI*2); ctx.fill();
+  // Big friendly eyes
+  ctx.fillStyle = 'white';
+  ctx.beginPath(); ctx.arc(-r*0.3, -r*0.05, r*0.26, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.3,  -r*0.05, r*0.26, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#1e1b4b';
+  ctx.beginPath(); ctx.arc(-r*0.26, 0, r*0.13, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.34,  0, r*0.13, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'white';
+  ctx.beginPath(); ctx.arc(-r*0.31, -0.05*r, r*0.05, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.29,  -0.05*r, r*0.05, 0, Math.PI*2); ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1.8; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(0, r*0.15, r*0.3, 0.15*Math.PI, 0.85*Math.PI); ctx.stroke();
 
   ctx.restore();
 }
 
 /* ═══════════════════
-   DRAW DRONE
+   DRAW FRIENDLY DRONE (rounder, cuter)
 ═══════════════════ */
 function drawDrone(obs) {
+  const bob = Math.sin(frameCount * 0.07 + obs.bobSeed) * 3;
   ctx.save();
-  ctx.translate(obs.x, obs.y);
+  ctx.translate(obs.x, obs.y + bob);
 
-  // Red warning glow
-  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 14;
+  ctx.shadowColor = '#f472b6'; ctx.shadowBlur = 12;
 
-  // Body
-  ctx.fillStyle = '#374151';
-  ctx.beginPath(); ctx.roundRect(-18, -10, 36, 20, 5); ctx.fill();
+  // Rounded body
+  ctx.fillStyle = '#4b5563';
+  ctx.beginPath(); ctx.roundRect(-18, -11, 36, 22, 11); ctx.fill();
 
-  // Centre dome
-  ctx.fillStyle = '#ef4444';
+  // Soft highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.beginPath(); ctx.roundRect(-16, -9, 30, 8, 6); ctx.fill();
+
+  // Friendly face dome
+  ctx.fillStyle = '#f472b6';
   ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#fca5a5';
-  ctx.beginPath(); ctx.arc(-2, -3, 4, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'white';
+  ctx.beginPath(); ctx.arc(-3, -2, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(3, -2, 3, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#1e1b4b';
+  ctx.beginPath(); ctx.arc(-3, -1, 1.4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(3, -1, 1.4, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=1; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(0, 2, 4, 0.2*Math.PI, 0.8*Math.PI); ctx.stroke();
 
-  // Arms
-  ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 3;
-  [[-22,-14],[22,-14],[-22,14],[22,14]].forEach(([ex,ey]) => {
+  // Soft arms
+  ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 3; ctx.lineCap='round';
+  [[-22,-12],[22,-12],[-22,12],[22,12]].forEach(([ex,ey]) => {
     ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(ex,ey); ctx.stroke();
   });
 
-  // Propellers (spinning)
-  const spin = frameCount * 0.25;
-  [[-22,-14],[22,-14],[-22,14],[22,14]].forEach(([px,py]) => {
+  // Gently spinning propellers
+  const spin = frameCount * 0.12;
+  [[-22,-12],[22,-12],[-22,12],[22,12]].forEach(([px,py]) => {
     ctx.save(); ctx.translate(px,py);
-    ctx.fillStyle = 'rgba(156,163,175,0.7)';
+    ctx.fillStyle = 'rgba(209,213,219,0.7)';
     ctx.save(); ctx.rotate(spin);
-    ctx.beginPath(); ctx.ellipse(0,0,10,2,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+    ctx.beginPath(); ctx.ellipse(0,0,9,2,0,0,Math.PI*2); ctx.fill(); ctx.restore();
     ctx.save(); ctx.rotate(spin + Math.PI/2);
-    ctx.beginPath(); ctx.ellipse(0,0,10,2,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+    ctx.beginPath(); ctx.ellipse(0,0,9,2,0,0,Math.PI*2); ctx.fill(); ctx.restore();
     ctx.restore();
   });
 
-  // Laser beam (targeting)
-  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 8;
-  ctx.strokeStyle = 'rgba(239,68,68,0.6)'; ctx.lineWidth = 1.5;
-  ctx.setLineDash([4,4]);
-  ctx.beginPath(); ctx.moveTo(-18,0); ctx.lineTo(-60,0); ctx.stroke();
-  ctx.setLineDash([]);
   ctx.shadowBlur = 0;
-
   ctx.restore();
 }
 
@@ -284,46 +307,35 @@ function drawDrone(obs) {
 ═══════════════════ */
 let obstacles = [];
 
-function makeAsteroidPts(r) {
-  const pts = [];
-  const sides = 7 + Math.floor(Math.random()*4);
-  for(let i=0; i<sides; i++) {
-    const angle = (i/sides) * Math.PI*2;
-    const rad   = r * (0.7 + Math.random()*0.5);
-    pts.push({ x: Math.cos(angle)*rad, y: Math.sin(angle)*rad });
-  }
-  return pts;
-}
-
-const ASTEROID_COLORS = ['#6b7280','#78716c','#57534e','#4b5563','#92400e'];
+const ROCK_COLORS = ['#a16207','#92400e','#b45309','#854d0e'];
 
 function spawnObstacles() {
-  // Block 1-3 lanes, always leave at least 2 open
-  const numBlocked = Math.min(3, Math.floor(Math.random()*3)+1);
+  const numBlocked = Math.random() < 0.3 ? 2 : 1;
   const pool = [0,1,2,3,4];
   const blocked = [];
   while(blocked.length < numBlocked) {
     const i = Math.floor(Math.random()*pool.length);
     blocked.push(pool.splice(i,1)[0]);
   }
-  if(pool.length < 2) blocked.pop(); // ensure always 2 free lanes
+  if(pool.length < 2) blocked.pop();
 
   blocked.forEach(lane => {
     const isAsteroid = Math.random() < 0.55;
     if(isAsteroid) {
-      const r = 18 + Math.random()*14;
+      const r = 20 + Math.random()*12;
       obstacles.push({
         type:'asteroid', lane,
         x: W+40, y: LANE_Y[lane],
-        r, pts: makeAsteroidPts(r),
-        rot: 0, rotSpeed: (Math.random()-0.5)*0.04,
-        color: ASTEROID_COLORS[Math.floor(Math.random()*ASTEROID_COLORS.length)],
+        r,
+        color: ROCK_COLORS[Math.floor(Math.random()*ROCK_COLORS.length)],
+        bobSeed: Math.random()*Math.PI*2,
         passed: false
       });
     } else {
       obstacles.push({
         type:'drone', lane,
         x: W+40, y: LANE_Y[lane],
+        bobSeed: Math.random()*Math.PI*2,
         passed: false
       });
     }
@@ -334,14 +346,12 @@ function spawnObstacles() {
    BACKGROUND
 ═══════════════════ */
 function drawBackground() {
-  // Deep space gradient
   const grad = ctx.createLinearGradient(0,0,0,H);
   grad.addColorStop(0, '#050112');
   grad.addColorStop(0.5,'#0d0528');
   grad.addColorStop(1, '#1a0a3d');
   ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
 
-  // Parallax stars
   stars.forEach(s => {
     s.x -= s.speed * (speed*0.15);
     if(s.x < 0) { s.x = W; s.y = Math.random()*H; }
@@ -349,7 +359,6 @@ function drawBackground() {
     ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
   });
 
-  // Subtle lane separators
   ctx.setLineDash([12,20]);
   ctx.strokeStyle = 'rgba(251,191,36,0.1)';
   ctx.lineWidth = 1;
@@ -359,7 +368,6 @@ function drawBackground() {
   }
   ctx.setLineDash([]);
 
-  // Lane labels (right side)
   const laneNames = ['LANE 1','LANE 2','LANE 3','LANE 4','LANE 5'];
   ctx.font = "9px 'Exo 2', sans-serif";
   ctx.fillStyle = 'rgba(251,191,36,0.2)';
@@ -369,7 +377,6 @@ function drawBackground() {
   });
   ctx.textAlign = 'left';
 
-  // Active lane highlight
   ctx.fillStyle = 'rgba(251,191,36,0.04)';
   ctx.fillRect(0, LANE_H * currentLane, W, LANE_H);
 }
@@ -390,7 +397,7 @@ function drawStartScreen() {
 
   ctx.font = "13px 'Exo 2', sans-serif";
   ctx.fillStyle = 'rgba(253,230,138,0.75)';
-  ctx.fillText('Navigate through 5 lanes. Dodge asteroids and enemy drones.', W/2, H/2 - 74);
+  ctx.fillText('Glide through 5 lanes, greeting friendly rocks and drones along the way', W/2, H/2 - 74);
 
   ctx.fillStyle = 'rgba(251,191,36,0.1)';
   ctx.strokeStyle = 'rgba(251,191,36,0.4)';
@@ -460,7 +467,6 @@ function drawGameOver() {
     ctx.fillText(stat.label, bx+64, by+66);
   });
 
-  // Balance bar
   const barW=390, barX=W/2-barW/2, barY=H/2+118;
   ctx.font="10px 'Exo 2'"; ctx.fillStyle='rgba(253,230,138,0.5)';
   ctx.fillText('MOVEMENT BALANCE', W/2, barY-7);
@@ -482,7 +488,6 @@ function drawGameOver() {
   ctx.fillText(`DOWN ${Math.round((1-upRatio)*100)}%`, barX+barW, barY+28);
   ctx.textAlign='center';
 
-  // Buttons
   ctx.fillStyle='rgba(34,211,238,0.18)'; ctx.strokeStyle='#22d3ee'; ctx.lineWidth=1.5;
   ctx.beginPath(); ctx.roundRect(W/2-200,H/2+158,178,42,50); ctx.fill(); ctx.stroke();
   ctx.font="13px 'Orbitron'"; ctx.fillStyle='#fff';
@@ -511,24 +516,20 @@ function loop() {
     return;
   }
 
-  // Smooth lane transition
-  planeY += (targetY - planeY) * 0.16;
+  planeY += (targetY - planeY) * 0.14;
 
-  // Increase difficulty
-  if(frameCount % 450 === 0 && speed < 7.5) {
-    speed    += 0.35;
-    spawnRate = Math.max(55, spawnRate - 8);
+  // Gentle difficulty ramp, capped at MAX_SPEED
+  if(frameCount % DIFFICULTY_STEP_FRAMES === 0 && speed < MAX_SPEED) {
+    speed    += 0.25;
+    spawnRate = Math.max(95, spawnRate - 6);
   }
 
-  // Spawn
   spawnTimer++;
   if(spawnTimer >= spawnRate) { spawnObstacles(); spawnTimer=0; }
 
-  // Update obstacles
   for(let i=obstacles.length-1; i>=0; i--) {
     const obs = obstacles[i];
     obs.x -= speed;
-    if(obs.type==='asteroid') obs.rot += obs.rotSpeed;
 
     if(!obs.passed && obs.x < 110) {
       obs.passed=true; score++;
@@ -536,13 +537,11 @@ function loop() {
     }
     if(obs.x < -80) { obstacles.splice(i,1); continue; }
 
-    // Collision
-    const hitR = obs.type==='asteroid' ? obs.r*0.75 : 20;
+    const hitR = obs.type==='asteroid' ? obs.r*0.7 : 18;
     const dx = 120 - obs.x, dy = planeY - obs.y;
-    if(Math.sqrt(dx*dx+dy*dy) < hitR + 18) { gameOver=true; }
+    if(Math.sqrt(dx*dx+dy*dy) < hitR + 16) { gameOver=true; }
   }
 
-  // Draw
   drawBackground();
   obstacles.forEach(o => o.type==='asteroid' ? drawAsteroid(o) : drawDrone(o));
   drawPlane(120, planeY);
@@ -593,7 +592,7 @@ canvas.addEventListener('click', e => {
 function resetGame(){
   score=0;moveCount=0;upMoves=0;downMoves=0;
   gameOver=false;started=true;frameCount=0;
-  speed=2.8;spawnTimer=0;spawnRate=100;
+  speed=1.5;spawnTimer=0;spawnRate=150;
   currentLane=2;targetY=LANE_Y[2];planeY=LANE_Y[2];
   obstacles=[];
   document.getElementById('hud-score').textContent='0';
