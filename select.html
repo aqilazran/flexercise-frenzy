@@ -17,13 +17,24 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      background: linear-gradient(180deg, #120633 0%, #1b0947 40%, #2a0e66 100%);
+      /* Smooth animated moving cosmic gradient background */
+      background: linear-gradient(125deg, #120633 0%, #1b0947 35%, #2a0e66 70%, #0d0426 100%);
+      background-size: 400% 400%;
+      animation: movingCosmos 16s ease infinite;
       font-family: 'Exo 2', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
     }
+
+    /* Keyframes to make the gradient move fluidly */
+    @keyframes movingCosmos {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     h1 {
       font-family: 'Orbitron', monospace;
       color: white;
@@ -63,13 +74,23 @@
       letter-spacing: 1px;
       margin-bottom: 8px;
     }
-    .card .card-subtitle {
+    .card p {
       color: #f0abfc;
       font-size: 13px;
       font-weight: 600;
       letter-spacing: 1px;
       text-transform: uppercase;
       margin-bottom: 15px;
+    }
+    /* Kept descriptions clean and forced white color layout safely */
+    .card .description-text {
+      color: #ffffff !important;
+      text-transform: none !important;
+      font-weight: 400 !important;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 10px;
+      letter-spacing: 0px;
     }
     .icon-box {
       margin: 20px auto;
@@ -86,78 +107,3 @@
       color: rgba(255,255,255,0.6);
       padding: 10px 24px;
       border-radius: 30px;
-      font-family: 'Orbitron', monospace;
-      font-size: 13px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .btn-back:hover {
-      border-color: white;
-      color: white;
-      box-shadow: 0 0 15px rgba(255,255,255,0.2);
-    }
-  </style>
-</head>
-<body>
-
-  <h1>SELECT EXERCISE MODE</h1>
-
-  <div class="menu-container">
-    <div class="card" onclick="selectGame('left-right')">
-      <div class="icon-box">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="5" r="2" />
-          <path d="M7 13h5l1.5-4.5L11 6" />
-          <path d="M9 19V13" />
-          <path d="M15 13l-1.5 4.5L16 22" />
-          <path d="M12 9l3 3" />
-        </svg>
-      </div>
-      <h3>Neon Rush</h3>
-      <p class="card-subtitle">Inversion / Eversion</p>
-      <p style="color: #ffffff !important; text-transform: none !important; font-weight: 400 !important; font-size: 13px; line-height: 1.5; margin-top: 10px; letter-spacing: 0px;">Steer your cosmic runner left and right down the 3D grid road to dodge neon obstacles.</p>
-    </div>
-
-    <div class="card" onclick="selectGame('up-down')">
-      <div class="icon-box">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2s3 3 3 9-3 9-3 9-3-3-3-9 3-9 3-9z" />
-          <path d="M9 13H3l3 3" />
-          <path d="M15 13h6l-3 3" />
-        </svg>
-      </div>
-      <h3>Sky Patrol</h3>
-      <p class="card-subtitle">Dorsi / Plantarflexion</p>
-      <p style="color: #ffffff !important; text-transform: none !important; font-weight: 400 !important; font-size: 13px; line-height: 1.5; margin-top: 10px; letter-spacing: 0px;">Navigate your ship up and down to collect energy gates and dodge incoming storms.</p>
-    </div>
-
-    <div class="card" onclick="selectGame('swing')">
-      <div class="icon-box">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#6b21a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M2 12c0-3.3 4.5-6 10-6s10 2.7 10 6-4.5 6-10 6-10-2.7-10-6Z" transform="rotate(-15 12 12)" />
-          <path d="M2 12c0-3.3 4.5-6 10-6s10 2.7 10 6-4.5 6-10 6-10-2.7-10-6Z" transform="rotate(45 12 12)" />
-        </svg>
-      </div>
-      <h3>Circumduction</h3>
-      <p class="card-subtitle">Full Ankle Rotation</p>
-      <p style="color: #ffffff !important; text-transform: none !important; font-weight: 400 !important; font-size: 13px; line-height: 1.5; margin-top: 10px; letter-spacing: 0px;">Rotate your ankle in full circles to sweep away orbital space debris.</p>
-    </div>
-  </div>
-
-  <button class="btn-back" onclick="window.location.href='index.html'">← RETURN TO START</button>
-
-  <script>
-    function selectGame(gameMode) {
-      if (gameMode === 'left-right') {
-        window.location.href = 'game3.html';
-      } else if (gameMode === 'up-down') {
-        window.location.href = 'game2.html';
-      } else if (gameMode === 'swing') {
-        window.location.href = 'game2.html';
-      }
-    }
-  </script>
-
-</body>
-</html>
