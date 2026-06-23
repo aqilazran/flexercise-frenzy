@@ -225,54 +225,105 @@
     .card-play-btn:hover  { opacity: 0.88; transform: scale(1.03); }
     .card-play-btn:active { transform: scale(0.97); }
 
-    /* ── CARD 1 — Side Runner — teal ── */
+    /* ── CARD 1 — Side Runner — Subway Surfers Concept ── */
     .card-1 { border-color: rgba(34, 211, 238, 0.35); }
     .card-1:hover { border-color: rgba(34, 211, 238, 0.8); box-shadow: 0 16px 48px rgba(34,211,238,0.25); }
     .card-1 .card-tag  { background: rgba(34,211,238,0.15); color: #22d3ee; }
     .card-1 .card-play-btn { background: linear-gradient(135deg, #0e7490, #22d3ee); }
 
-    .preview-1 { background: linear-gradient(180deg, #0c1a2e 0%, #0e4a6b 60%, #1a7a5e 100%); }
+    .preview-1 { background: linear-gradient(180deg, #0c1a2e 0%, #0e4a6b 40%, #0f172a 100%); position: relative; }
 
-    .road-line {
-      position: absolute; bottom: 0; width: 100%; height: 40px;
-      background: #1e3a2a;
+    .horizon-line {
+      position: absolute; top: 70px; left: 0; width: 100%; height: 1px;
+      background: rgba(34, 211, 238, 0.25);
     }
-    .road-mark {
-      position: absolute; bottom: 15px; height: 6px; width: 36px;
-      background: rgba(255,255,255,0.35); border-radius: 3px;
-      animation: roadScroll 1.6s linear infinite;
-    }
-    @keyframes roadScroll {
-      from { transform: translateX(350px); }
-      to   { transform: translateX(-60px); }
-    }
-    .runner {
-      position: absolute; bottom: 40px; left: 50%;
+    .subway-track {
+      position: absolute;
+      bottom: 0; left: 50%;
+      width: 180px; height: 110px;
       transform: translateX(-50%);
-      animation: runnerDodge 3.2s ease-in-out infinite;
+      background: rgba(15, 23, 42, 0.7);
+      clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+      border-left: 1.5px solid rgba(34, 211, 238, 0.4);
+      border-right: 1.5px solid rgba(34, 211, 238, 0.4);
     }
-    @keyframes runnerDodge {
-      0%,100% { left: 50%; }
-      30%      { left: 30%; }
-      70%      { left: 68%; }
+    .track-divider-1 {
+      position: absolute; top: 0; bottom: 0; left: 42%;
+      width: 1px; background: dashed rgba(34, 211, 238, 0.3);
+      transform: skewX(-12deg);
+      transform-origin: top center;
     }
-    .obstacle {
-      position: absolute; bottom: 40px;
-      animation: obstacleMove var(--spd, 2.2s) linear infinite;
-      animation-delay: var(--dly, 0s);
+    .track-divider-2 {
+      position: absolute; top: 0; bottom: 0; left: 58%;
+      width: 1px; background: dashed rgba(34, 211, 238, 0.3);
+      transform: skewX(12deg);
+      transform-origin: top center;
     }
-    @keyframes obstacleMove {
-      from { left: 110%; }
-      to   { left: -20%; }
+    .subway-runner {
+      position: absolute; bottom: 6px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      animation: subwayDodge 3.5s ease-in-out infinite;
+    }
+    @keyframes subwayDodge {
+      0%, 100% { left: 50%; } /* Center Lane */
+      30%      { left: 32%; } /* Left Lane */
+      70%      { left: 68%; } /* Right Lane */
+    }
+    .subway-obstacle {
+      position: absolute;
+      z-index: 3;
+    }
+    .sub-obs-1 {
+      animation: subObsMove1 2.8s linear infinite;
+    }
+    .sub-obs-2 {
+      animation: subObsMove2 2.8s linear infinite;
+      animation-delay: 1.4s;
+    }
+    @keyframes subObsMove1 {
+      0% {
+        top: 65px; left: 50%;
+        transform: translateX(-50%) scale(0.1);
+        opacity: 0;
+      }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% {
+        top: 135px; left: 22%;
+        transform: translateX(-50%) scale(1.0);
+        opacity: 0;
+      }
+    }
+    @keyframes subObsMove2 {
+      0% {
+        top: 65px; left: 50%;
+        transform: translateX(-50%) scale(0.1);
+        opacity: 0;
+      }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% {
+        top: 135px; left: 78%;
+        transform: translateX(-50%) scale(1.0);
+        opacity: 0;
+      }
     }
 
-    /* ── CARD 2 — Sky Patrol — amber ── */
+    /* ── CARD 2 — Sky Patrol — 3 Lanes & Bird theme ── */
     .card-2 { border-color: rgba(251, 191, 36, 0.35); }
     .card-2:hover { border-color: rgba(251,191,36,0.8); box-shadow: 0 16px 48px rgba(251,191,36,0.22); }
     .card-2 .card-tag  { background: rgba(251,191,36,0.15); color: #fbbf24; }
     .card-2 .card-play-btn { background: linear-gradient(135deg, #b45309, #fbbf24); }
 
-    .preview-2 { background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 50%, #0f4c2a 100%); }
+    .preview-2 { background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 50%, #0f4c2a 100%); position: relative; }
+
+    .sky-lane-line {
+      position: absolute; left: 0; width: 100%; height: 1px;
+      background: rgba(251, 191, 36, 0.15);
+    }
+    .sky-lane-1 { top: 33.33%; }
+    .sky-lane-2 { top: 66.66%; }
 
     .rock-obs {
       position: absolute;
@@ -285,11 +336,12 @@
     }
     .flyer {
       position: absolute; left: 20%;
-      animation: flap 1.8s ease-in-out infinite;
+      animation: flap 2.4s ease-in-out infinite;
     }
     @keyframes flap {
-      0%,100% { top: 28%; }
-      50%      { top: 60%; }
+      0%, 100% { top: 12%; } /* Top Lane */
+      33%      { top: 44%; } /* Middle Lane */
+      66%      { top: 72%; } /* Bottom Lane */
     }
 
     /* ════════════════════════════════
@@ -312,7 +364,6 @@
 
   <div id="star-layer"></div>
 
-  <!-- Clouds -->
   <div class="cloud" style="width:130px; height:32px; top:55px; --speed:19s; --start:0s;">
     <div class="cloud-puff" style="width:65px; height:55px; top:-24px; left:22px;"></div>
     <div class="cloud-puff" style="width:44px; height:38px; top:-18px; left:62px;"></div>
@@ -325,26 +376,23 @@
     <div class="cloud-puff" style="width:52px; height:42px; top:-20px; left:78px;"></div>
   </div>
 
-  <!-- Header -->
   <div id="header">
     <button id="back-btn" onclick="window.location.href='index.html'">← Back</button>
     <div id="page-title">CHOOSE YOUR GAME</div>
     <div id="page-sub">Select a mode to start your ankle training</div>
   </div>
 
-  <!-- Cards -->
   <div id="cards-grid">
 
-    <!-- CARD 1: Side Runner -->
     <div class="game-card card-1" onclick="window.location.href='game1.html'">
       <div class="card-preview preview-1">
-        <div class="road-line"></div>
-        <div class="road-mark" style="--dly:0s;"></div>
-        <div class="road-mark" style="--dly:0.5s;"></div>
-        <div class="road-mark" style="--dly:1.0s;"></div>
-        <div class="road-mark" style="--dly:1.5s;"></div>
+        <div class="horizon-line"></div>
+        <div class="subway-track">
+          <div class="track-divider-1"></div>
+          <div class="track-divider-2"></div>
+        </div>
 
-        <div class="obstacle" style="--spd:2.4s; --dly:0s;">
+        <div class="subway-obstacle sub-obs-1">
           <svg width="24" height="44" viewBox="0 0 24 44">
             <rect x="1" y="2" width="22" height="40" rx="11" fill="#ef4444"/>
             <circle cx="12" cy="14" r="6" fill="#fff" opacity="0.85"/>
@@ -353,7 +401,7 @@
             <path d="M8 18 Q12 21 16 18" stroke="#1e1b4b" stroke-width="1.4" fill="none" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="obstacle" style="--spd:2.4s; --dly:1.2s;">
+        <div class="subway-obstacle sub-obs-2">
           <svg width="24" height="44" viewBox="0 0 24 44">
             <rect x="1" y="2" width="22" height="40" rx="11" fill="#f97316"/>
             <circle cx="12" cy="14" r="6" fill="#fff" opacity="0.85"/>
@@ -363,7 +411,7 @@
           </svg>
         </div>
 
-        <div class="runner">
+        <div class="subway-runner">
           <svg width="28" height="52" viewBox="0 0 28 52">
             <rect x="10" y="38" width="4" height="14" rx="2" fill="#7c3aed"/>
             <rect x="16" y="38" width="4" height="14" rx="2" fill="#7c3aed"/>
@@ -386,16 +434,18 @@
       <div class="card-body">
         <div class="card-tag">Mode 1</div>
         <div class="card-title">SIDE RUNNER</div>
-        <div class="card-desc">Dodge friendly obstacles coming at you from the right. Move left or right to survive.</div>
+        <div class="card-desc">Dodge obstacles in a 3-lane subway-style forward runner. Move left or right to survive.</div>
         <div class="card-movement">Ankle move: <span>Inversion &amp; Eversion</span></div>
       </div>
       <button class="card-play-btn">▶ &nbsp;PLAY</button>
     </div>
 
-    <!-- CARD 2: Sky Patrol -->
     <div class="game-card card-2" onclick="window.location.href='game2.html'">
       <div class="card-preview preview-2">
-        <div class="rock-obs" style="top:25%; --spd:2.8s; --dly:0s;">
+        <div class="sky-lane-line sky-lane-1"></div>
+        <div class="sky-lane-line sky-lane-2"></div>
+
+        <div class="rock-obs" style="top:12%; --spd:2.8s; --dly:0s;">
           <svg width="36" height="36" viewBox="0 0 36 36">
             <circle cx="18" cy="18" r="15" fill="#92400e"/>
             <circle cx="13" cy="14" r="4" fill="#78350f" opacity="0.6"/>
@@ -405,7 +455,7 @@
             <path d="M14 22 Q18 25 22 22" stroke="#451a03" stroke-width="1.6" fill="none" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="rock-obs" style="top:60%; --spd:2.8s; --dly:1.4s;">
+        <div class="rock-obs" style="top:72%; --spd:2.8s; --dly:1.4s;">
           <svg width="30" height="30" viewBox="0 0 30 30">
             <circle cx="15" cy="15" r="12" fill="#a16207"/>
             <circle cx="11" cy="12" r="1.7" fill="#fff" opacity="0.85"/>
@@ -429,7 +479,7 @@
       <div class="card-body">
         <div class="card-tag">Mode 2</div>
         <div class="card-title">SKY PATROL</div>
-        <div class="card-desc">Fly through 5 lanes, dodging friendly space rocks and drones along the way.</div>
+        <div class="card-desc">Fly through 3 lanes, dodging obstacles and drones along the way.</div>
         <div class="card-movement">Ankle move: <span>Dorsi &amp; Plantar Flexion</span></div>
       </div>
       <button class="card-play-btn">▶ &nbsp;PLAY</button>
