@@ -632,3 +632,27 @@ canvas.addEventListener('click', (e) => {
   if (cx < W / 2) moveLeft();
   else             moveRight();
 });
+
+function resetGame() {
+  score       = 0;
+  moveCount   = 0;
+  leftMoves   = 0;
+  rightMoves  = 0;
+  gameOver    = false;
+  started     = true;
+  frameCount  = 0;
+  speed       = 1.6;
+  spawnTimer  = 0;
+  spawnRate   = 170;
+  currentLane = 1;
+  targetY     = LANE_Y[1];
+  robotY      = LANE_Y[1];
+  obstacles   = [];
+  document.getElementById('hud-score').textContent = '0';
+  document.getElementById('hud-moves').textContent = '0';
+}
+
+loop();
+</script>
+</body>
+</html>
