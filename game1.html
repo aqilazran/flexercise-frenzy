@@ -11,645 +11,572 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: #1a0a3d;
+      width: 100vw; height: 100vh; overflow: hidden;
+      background: #050112;
       font-family: 'Orbitron', monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
     }
 
     #hud {
-      position: absolute;
-      top: 18px;
-      width: 90%;
-      max-width: 820px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 20;
-      pointer-events: none;
+      position: absolute; top: 18px;
+      width: 90%; max-width: 820px;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 20; pointer-events: none;
     }
     .hud-box {
-      background: rgba(30, 10, 70, 0.7);
-      border: 1px solid rgba(168,85,247,0.5);
-      border-radius: 12px;
-      padding: 8px 18px;
-      font-size: 13px;
-      color: #e9d5ff;
-      letter-spacing: 1.5px;
+      background: rgba(5,1,18,0.8);
+      border: 1px solid rgba(34,211,238,0.45);
+      border-radius: 12px; padding: 8px 18px;
+      font-size: 13px; color: #a5f3fc; letter-spacing: 1.5px;
     }
-    .hud-box span {
-      color: #f0abfc;
-      font-size: 18px;
-      font-weight: 700;
-    }
-    #mode-tag {
-      font-size: 11px;
-      color: #22d3ee;
-      letter-spacing: 2px;
-    }
+    .hud-box span { color: #22d3ee; font-size: 18px; font-weight: 700; }
+    #mode-tag { font-size: 11px; color: #22d3ee; letter-spacing: 2px; }
 
     canvas {
       display: block;
-      border: 2.5px solid rgba(34, 211, 238, 0.6);
+      border: 2.5px solid rgba(34,211,238,0.55);
       border-radius: 16px;
-      box-shadow: 0 0 36px rgba(34, 211, 238, 0.25), 0 0 80px rgba(168,85,247,0.2);
+      box-shadow: 0 0 40px rgba(34,211,238,0.2), 0 0 80px rgba(168,85,247,0.15);
     }
 
     #controls-hint {
-      position: absolute;
-      bottom: 18px;
-      font-family: 'Exo 2', sans-serif;
-      font-size: 12px;
-      color: rgba(255,255,255,0.35);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      pointer-events: none;
+      position: absolute; bottom: 18px;
+      font-family: 'Exo 2', sans-serif; font-size: 12px;
+      color: rgba(255,255,255,0.3); letter-spacing: 2px;
+      text-transform: uppercase; pointer-events: none;
     }
-
     #quit-btn {
-      position: absolute;
-      top: 18px;
-      left: calc(5% + 0px);
-      background: rgba(30,10,70,0.7);
-      border: 1px solid rgba(168,85,247,0.4);
-      border-radius: 50px;
-      padding: 8px 18px;
-      font-family: 'Exo 2', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      color: #e9d5ff;
-      cursor: pointer;
-      letter-spacing: 1px;
-      z-index: 30;
-      transition: background 0.2s;
+      position: absolute; top: 18px; left: 5%;
+      background: rgba(5,1,18,0.8);
+      border: 1px solid rgba(34,211,238,0.4);
+      border-radius: 50px; padding: 8px 18px;
+      font-family: 'Exo 2', sans-serif; font-size: 13px;
+      font-weight: 600; color: #a5f3fc; cursor: pointer;
+      letter-spacing: 1px; z-index: 30; transition: background 0.2s;
     }
-    #quit-btn:hover { background: rgba(168,85,247,0.35); }
+    #quit-btn:hover { background: rgba(34,211,238,0.2); }
   </style>
 </head>
 <body>
 
-  <button id="quit-btn" onclick="window.location.href='select.html'">← MENU</button>
+<button id="quit-btn" onclick="window.location.href='select.html'">← MENU</button>
 
-  <div id="hud">
-    <div class="hud-box">SCORE &nbsp;<span id="hud-score">0</span></div>
-    <div class="hud-box" id="mode-tag">INVERSION &amp; EVERSION</div>
-    <div class="hud-box">MOVES &nbsp;<span id="hud-moves">0</span></div>
-  </div>
+<div id="hud">
+  <div class="hud-box">SCORE &nbsp;<span id="hud-score">0</span></div>
+  <div class="hud-box" id="mode-tag">INVERSION &amp; EVERSION</div>
+  <div class="hud-box">MOVES &nbsp;<span id="hud-moves">0</span></div>
+</div>
 
-  <canvas id="gameCanvas" width="820" height="480"></canvas>
-
-  <div id="controls-hint">← → Arrow Keys &nbsp;|&nbsp; A D Keys &nbsp;— Move your ankle left / right</div>
+<canvas id="gameCanvas" width="820" height="500"></canvas>
+<div id="controls-hint">← → Arrow Keys / A D — Ankle Left (Inversion) / Right (Eversion)</div>
 
 <script>
-const canvas  = document.getElementById('gameCanvas');
-const ctx     = canvas.getContext('2d');
-const W       = canvas.width;
-const H       = canvas.height;
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
 
-/* ═══════════════════════════════════════
-   GAME STATE
-   ── SLOWED DOWN FOR REHAB PACING ──
-═══════════════════════════════════════ */
-let score        = 0;
-let moveCount    = 0;
-let leftMoves    = 0;
-let rightMoves   = 0;
-let gameOver     = false;
-let started      = false;
-let frameCount   = 0;
-let speed        = 1.6;     // was 3.2 — much gentler start
-let spawnTimer   = 0;
-let spawnRate    = 170;     // was 110 — more time between obstacles
-const MAX_SPEED  = 3.2;     // was 7 — caps out far lower
-const DIFFICULTY_STEP_FRAMES = 700; // was 400 — ramps up much more gradually
+/* ════════════════════════
+   STATE  ── SLOWED FOR REHAB PACING ──
+════════════════════════ */
+let score=0, moveCount=0, leftMoves=0, rightMoves=0;
+let gameOver=false, started=false, frameCount=0;
+let speed=1.6, spawnTimer=0, spawnRate=130;
+const MAX_SPEED = 3.4;
+const DIFFICULTY_STEP_FRAMES = 700;
 
-/* ═══════════════════════════════════════
-   LANES
-═══════════════════════════════════════ */
-const LANE_Y     = [H * 0.28, H * 0.52, H * 0.76];
-const LANE_COUNT = 3;
-let   currentLane = 1;
-let   targetY     = LANE_Y[1];
-let   robotY      = LANE_Y[1];
+/* ════════════════════════
+   PERSPECTIVE TRACK CONFIG
+   Behind-character view, Subway-Surfers style
+════════════════════════ */
+const VP = { x: W/2, y: H*0.18 };
+const TRACK_BOT_W = 560;
+const TRACK_BOT_L = (W - TRACK_BOT_W) / 2;
+const TRACK_BOT_Y = H - 20;
 
-/* ═══════════════════════════════════════
-   ROBOT DRAW
-═══════════════════════════════════════ */
-function drawRobot(x, y, scale = 1) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
+const LANE_FRACS  = [0.18, 0.50, 0.82];
+let currentLane   = 1;
+let prevLane      = 1;
+let laneT         = 1;
 
-  const W2 = 32, H2 = 58;
-  const cx = -W2 / 2;
-
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.beginPath();
-  ctx.ellipse(0, H2 / 2 + 4, 18, 4, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#7c3aed';
-  ctx.beginPath(); ctx.roundRect(cx + 4,  H2/2 - 4, 8, 16, 3); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(cx + 16, H2/2 - 4, 8, 16, 3); ctx.fill();
-
-  ctx.fillStyle = '#1e1b4b';
-  ctx.beginPath(); ctx.roundRect(cx + 1,  H2/2 + 10, 12, 6, 3); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(cx + 14, H2/2 + 10, 12, 6, 3); ctx.fill();
-
-  ctx.fillStyle = '#a855f7';
-  ctx.beginPath(); ctx.roundRect(cx, 4, W2, H2/2 - 2, 6); ctx.fill();
-
-  ctx.fillStyle = '#e9d5ff';
-  ctx.beginPath(); ctx.roundRect(cx + 8, 12, 16, 9, 3); ctx.fill();
-  ctx.fillStyle = '#7c3aed';
-  ctx.font = 'bold 5px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('STEP', 0, 20);
-
-  ctx.fillStyle = '#a855f7';
-  ctx.beginPath(); ctx.roundRect(cx - 10, 6,  10, 6, 3); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(cx + W2, 6,  10, 6, 3); ctx.fill();
-
-  ctx.fillStyle = '#fcd34d';
-  ctx.beginPath(); ctx.roundRect(cx + 11, -3, 10, 8, 3); ctx.fill();
-
-  ctx.fillStyle = '#fcd34d';
-  ctx.beginPath(); ctx.roundRect(cx, -22, W2, 22, 7); ctx.fill();
-
-  ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.roundRect(cx + 4,  -17, 8, 8, 2); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(cx + 20, -17, 8, 8, 2); ctx.fill();
-  ctx.fillStyle = '#1e1b4b';
-  ctx.beginPath(); ctx.roundRect(cx + 6,  -15, 4, 4, 1); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(cx + 22, -15, 4, 4, 1); ctx.fill();
-
-  ctx.strokeStyle = '#92400e'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(cx + 8, -7); ctx.quadraticCurveTo(0, -2, cx + 24, -7); ctx.stroke();
-
-  ctx.fillStyle = '#7c3aed';
-  ctx.beginPath(); ctx.roundRect(cx, -26, W2, 10, 5); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(cx + 5,  -32, 8, 10, 4); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(cx + 19, -32, 8, 10, 4); ctx.fill();
-
-  ctx.strokeStyle = '#e9d5ff'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(0, -32); ctx.lineTo(0, -38); ctx.stroke();
-  ctx.fillStyle = '#f0abfc';
-  ctx.beginPath(); ctx.arc(0, -40, 3, 0, Math.PI * 2); ctx.fill();
-
-  ctx.restore();
+function project(laneF, depth) {
+  const eased = depth * depth;
+  const botY  = TRACK_BOT_Y;
+  const py    = botY + (VP.y - botY) * eased;
+  const leftX = TRACK_BOT_L + (VP.x - TRACK_BOT_L) * eased;
+  const w     = TRACK_BOT_W * (1 - eased * 0.98);
+  const px    = leftX + w * laneF;
+  return { x: px, y: py, scale: 1 - eased * 0.88 };
 }
 
-/* ═══════════════════════════════════════
-   OBSTACLES — friendlier, rounder "critter" style
-═══════════════════════════════════════ */
+let roadOffset = 0;
+
+/* ════════════════════════
+   OBSTACLES — friendly round critters
+════════════════════════ */
 let obstacles = [];
 
-const OBSTACLE_PALETTE = [
+const CRITTER_COLORS = [
   { body: '#ef4444', cheek: '#fca5a5' },
   { body: '#f97316', cheek: '#fdba74' },
-  { body: '#eab308', cheek: '#fde047' },
+  { body: '#a855f7', cheek: '#e9d5ff' },
 ];
 
-function spawnObstacle() {
-  const blocked = [];
-  const numBlocked = Math.random() < 0.35 ? 2 : 1;
-  const lanes = [0, 1, 2];
-
-  while (blocked.length < numBlocked) {
-    const idx = Math.floor(Math.random() * lanes.length);
-    blocked.push(lanes.splice(idx, 1)[0]);
+function spawnObstacles() {
+  const numBlocked = Math.random()<0.3 ? 2 : 1;
+  const pool=[0,1,2], blocked=[];
+  while(blocked.length<numBlocked && pool.length>0) {
+    const i=Math.floor(Math.random()*pool.length);
+    blocked.push(pool.splice(i,1)[0]);
   }
+  if(blocked.length===3) blocked.splice(Math.floor(Math.random()*3),1);
 
   blocked.forEach(lane => {
-    const palette = OBSTACLE_PALETTE[Math.floor(Math.random() * OBSTACLE_PALETTE.length)];
+    const palette = CRITTER_COLORS[Math.floor(Math.random()*CRITTER_COLORS.length)];
     obstacles.push({
-      x: W + 30,
-      laneIndex: lane,
-      y: LANE_Y[lane],
-      r: 26,
-      body: palette.body,
+      lane,
+      depth: 0.02,
+      color: palette.body,
       cheek: palette.cheek,
-      bobSeed: Math.random() * Math.PI * 2,
+      bobSeed: Math.random()*Math.PI*2,
       passed: false
     });
   });
 }
 
-/* Friendly round "critter" obstacle — soft body, big eyes, blush cheeks */
-function drawObstacle(obs) {
-  const bob = Math.sin(frameCount * 0.08 + obs.bobSeed) * 3;
-  const x = obs.x;
-  const y = obs.y + bob;
-  const r = obs.r;
+/* ════════════════════════
+   DRAW TRACK (perspective)
+════════════════════════ */
+function drawTrack() {
+  const skyGrad = ctx.createLinearGradient(0,0,0,H*0.55);
+  skyGrad.addColorStop(0,'#050112');
+  skyGrad.addColorStop(1,'#0d1f2e');
+  ctx.fillStyle=skyGrad; ctx.fillRect(0,0,W,H*0.55);
+
+  ctx.fillStyle='#0a0318'; ctx.fillRect(0,H*0.55,W,H*0.45);
+
+  const leftTop  = project(0, 1);
+  const leftBot  = { x: TRACK_BOT_L, y: TRACK_BOT_Y };
+  const rightTop = project(1, 1);
+  const rightBot = { x: TRACK_BOT_L+TRACK_BOT_W, y: TRACK_BOT_Y };
+
+  const lwGrad = ctx.createLinearGradient(leftTop.x,0,leftBot.x,0);
+  lwGrad.addColorStop(0,'rgba(34,211,238,0.08)');
+  lwGrad.addColorStop(1,'rgba(20,120,90,0.12)');
+  ctx.fillStyle=lwGrad;
+  ctx.beginPath();
+  ctx.moveTo(0,0); ctx.lineTo(leftTop.x,leftTop.y);
+  ctx.lineTo(leftBot.x,leftBot.y); ctx.lineTo(0,H);
+  ctx.closePath(); ctx.fill();
+
+  const rwGrad = ctx.createLinearGradient(rightTop.x,0,rightBot.x,0);
+  rwGrad.addColorStop(0,'rgba(34,211,238,0.08)');
+  rwGrad.addColorStop(1,'rgba(20,120,90,0.12)');
+  ctx.fillStyle=rwGrad;
+  ctx.beginPath();
+  ctx.moveTo(W,0); ctx.lineTo(rightTop.x,rightTop.y);
+  ctx.lineTo(rightBot.x,rightBot.y); ctx.lineTo(W,H);
+  ctx.closePath(); ctx.fill();
+
+  // Soft tree silhouettes along the sides (instead of city windows)
+  for(let row=0; row<6; row++) {
+    for(let col=0; col<3; col++) {
+      const d = 0.15+row*0.14;
+      const leftPt  = project(0,d);
+      const rightPt = project(1,d);
+      const sc = 1-d*0.9;
+      const tw = 14*sc, th = 20*sc;
+      const alpha = 0.35;
+
+      ctx.fillStyle = `rgba(34,197,94,${alpha})`;
+      // left tree
+      ctx.beginPath();
+      ctx.moveTo(leftPt.x-30*sc-col*16*sc, leftPt.y);
+      ctx.lineTo(leftPt.x-30*sc-col*16*sc-tw/2, leftPt.y+th);
+      ctx.lineTo(leftPt.x-30*sc-col*16*sc+tw/2, leftPt.y+th);
+      ctx.closePath(); ctx.fill();
+      // right tree
+      ctx.beginPath();
+      ctx.moveTo(rightPt.x+30*sc+col*16*sc, rightPt.y);
+      ctx.lineTo(rightPt.x+30*sc+col*16*sc-tw/2, rightPt.y+th);
+      ctx.lineTo(rightPt.x+30*sc+col*16*sc+tw/2, rightPt.y+th);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  const trackGrad = ctx.createLinearGradient(0,VP.y,0,TRACK_BOT_Y);
+  trackGrad.addColorStop(0,'#102a1c');
+  trackGrad.addColorStop(1,'#1a4a30');
+  ctx.fillStyle=trackGrad;
+  ctx.beginPath();
+  ctx.moveTo(leftTop.x,leftTop.y); ctx.lineTo(rightTop.x,rightTop.y);
+  ctx.lineTo(rightBot.x,rightBot.y); ctx.lineTo(leftBot.x,leftBot.y);
+  ctx.closePath(); ctx.fill();
+
+  ctx.shadowColor='#22d3ee'; ctx.shadowBlur=8;
+  ctx.strokeStyle='rgba(34,211,238,0.6)'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(leftTop.x,leftTop.y); ctx.lineTo(leftBot.x,leftBot.y); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(rightTop.x,rightTop.y); ctx.lineTo(rightBot.x,rightBot.y); ctx.stroke();
+  ctx.shadowBlur=0;
+
+  [0.335, 0.665].forEach(lf => {
+    ctx.strokeStyle='rgba(34,211,238,0.18)'; ctx.lineWidth=1;
+    ctx.beginPath();
+    const lt=project(lf,0.98), lb=project(lf,0.0);
+    ctx.moveTo(lt.x,lt.y); ctx.lineTo(lb.x,lb.y); ctx.stroke();
+  });
+
+  const dashDepths = [0.05,0.12,0.20,0.30,0.42,0.56,0.70,0.84];
+  const dOff = (roadOffset % 0.14);
+  dashDepths.forEach(d => {
+    const dd = ((d + dOff) % 0.95)+0.02;
+    const p1 = project(0.485, dd);
+    const p2 = project(0.515, dd);
+    const alpha = (1-dd)*0.5;
+    ctx.strokeStyle=`rgba(34,211,238,${alpha})`;
+    ctx.lineWidth = Math.max(1, 3*(1-dd));
+    ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+  });
+
+  ctx.fillStyle='rgba(34,211,238,0.06)';
+  ctx.beginPath(); ctx.arc(VP.x,VP.y,60,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(168,85,247,0.08)';
+  ctx.beginPath(); ctx.arc(VP.x,VP.y,30,0,Math.PI*2); ctx.fill();
+}
+
+/* ════════════════════════
+   DRAW ROBOT (behind view)
+════════════════════════ */
+function drawCharacter() {
+  const lf = LANE_FRACS[prevLane] + (LANE_FRACS[currentLane]-LANE_FRACS[prevLane])*Math.min(laneT,1);
+  const charDepth = 0.04;
+  const pos = project(lf, charDepth);
+  const sc  = pos.scale * 2.2;
+  const cx  = pos.x, cy = pos.y;
+
+  const bob = Math.sin(frameCount*0.10)*2;
 
   ctx.save();
-  ctx.translate(x, y);
+  ctx.translate(cx, cy+bob);
 
-  // Soft shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.beginPath();
-  ctx.ellipse(0, r + 6, r * 0.7, r * 0.18, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.4)';
+  ctx.beginPath(); ctx.ellipse(0,22*sc,18*sc,5*sc,0,0,Math.PI*2); ctx.fill();
 
-  // Round body
-  ctx.fillStyle = obs.body;
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle='#7c3aed';
+  ctx.beginPath(); ctx.roundRect(-8*sc,8*sc,7*sc,18*sc,3*sc); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(1*sc,8*sc,7*sc,18*sc,3*sc); ctx.fill();
 
-  // Soft highlight
-  ctx.fillStyle = 'rgba(255,255,255,0.18)';
-  ctx.beginPath();
-  ctx.ellipse(-r * 0.3, -r * 0.35, r * 0.45, r * 0.32, -0.4, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle='#1e1b4b';
+  ctx.beginPath(); ctx.roundRect(-10*sc,24*sc,11*sc,5*sc,2*sc); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(0*sc,24*sc,11*sc,5*sc,2*sc); ctx.fill();
 
-  // Little antenna
-  ctx.strokeStyle = obs.body; ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(0, -r - 9); ctx.stroke();
-  ctx.fillStyle = '#fde68a';
-  ctx.beginPath(); ctx.arc(0, -r - 11, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle='#a855f7';
+  ctx.beginPath(); ctx.roundRect(-14*sc,-10*sc,28*sc,20*sc,5*sc); ctx.fill();
 
-  // Big friendly eyes
-  ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.arc(-r * 0.32, -r * 0.1, r * 0.28, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(r * 0.32,  -r * 0.1, r * 0.28, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle='#7c3aed';
+  ctx.beginPath(); ctx.roundRect(-9*sc,-8*sc,18*sc,14*sc,4*sc); ctx.fill();
+  ctx.fillStyle='rgba(233,213,255,0.3)';
+  ctx.beginPath(); ctx.roundRect(-6*sc,-6*sc,12*sc,8*sc,2*sc); ctx.fill();
 
-  ctx.fillStyle = '#1e1b4b';
-  ctx.beginPath(); ctx.arc(-r * 0.28, -r * 0.06, r * 0.14, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(r * 0.36,  -r * 0.06, r * 0.14, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle='#a855f7';
+  ctx.beginPath(); ctx.roundRect(-20*sc,-8*sc,7*sc,14*sc,3*sc); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(13*sc,-8*sc,7*sc,14*sc,3*sc); ctx.fill();
 
-  // Eye sparkle
-  ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.arc(-r*0.34, -r*0.12, r*0.05, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(r*0.30,  -r*0.12, r*0.05, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fcd34d';
+  ctx.beginPath(); ctx.roundRect(-5*sc,-16*sc,10*sc,8*sc,2*sc); ctx.fill();
 
-  // Blush cheeks
-  ctx.fillStyle = obs.cheek; ctx.globalAlpha = 0.7;
-  ctx.beginPath(); ctx.ellipse(-r*0.55, r*0.25, r*0.16, r*0.1, 0, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(r*0.55,  r*0.25, r*0.16, r*0.1, 0, 0, Math.PI*2); ctx.fill();
-  ctx.globalAlpha = 1;
+  ctx.fillStyle='#fcd34d';
+  ctx.beginPath(); ctx.ellipse(0,-22*sc,13*sc,11*sc,0,0,Math.PI*2); ctx.fill();
 
-  // Smile
-  ctx.strokeStyle = '#451a03'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.arc(0, r * 0.1, r * 0.32, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  ctx.fillStyle='#7c3aed';
+  ctx.beginPath(); ctx.ellipse(0,-23*sc,14*sc,10*sc,0,0,Math.PI*2); ctx.fill();
+
+  ctx.fillStyle='#a855f7';
+  ctx.beginPath(); ctx.roundRect(-4*sc,-34*sc,8*sc,12*sc,3*sc); ctx.fill();
+
+  ctx.strokeStyle='#e9d5ff'; ctx.lineWidth=1.5*sc;
+  ctx.beginPath(); ctx.moveTo(0,-34*sc); ctx.lineTo(0,-40*sc); ctx.stroke();
+  ctx.fillStyle='#f0abfc';
+  ctx.beginPath(); ctx.arc(0,-41*sc,2.5*sc,0,Math.PI*2); ctx.fill();
+
+  ctx.shadowColor='#a855f7'; ctx.shadowBlur=12;
+  ctx.strokeStyle='rgba(168,85,247,0.5)'; ctx.lineWidth=1*sc;
+  ctx.beginPath(); ctx.ellipse(0,-23*sc,14*sc,10*sc,0,0,Math.PI*2); ctx.stroke();
+  ctx.shadowBlur=0;
 
   ctx.restore();
 }
 
-/* ═══════════════════════════════════════
-   BACKGROUND
-═══════════════════════════════════════ */
-let bgOffset = 0;
+/* ════════════════════════
+   DRAW FRIENDLY CRITTER OBSTACLES
+════════════════════════ */
+function drawObstacle(obs) {
+  const lf  = LANE_FRACS[obs.lane];
+  const pos = project(lf, obs.depth);
+  const sc  = pos.scale;
+  if(sc < 0.05) return;
 
-function drawBackground() {
-  const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0,   '#1a0a3d');
-  grad.addColorStop(0.5, '#2d1266');
-  grad.addColorStop(1,   '#4a1080');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+  const bob = Math.sin(frameCount*0.07 + obs.bobSeed) * 3 * sc;
 
-  ctx.strokeStyle = 'rgba(168,85,247,0.12)';
-  ctx.lineWidth = 1;
-  const gridSpacing = 60;
-  const offset = bgOffset % gridSpacing;
-  for (let x = -offset; x < W + gridSpacing; x += gridSpacing) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-  }
-  for (let y = 0; y < H; y += 60) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-  }
+  ctx.save();
+  ctx.translate(pos.x, pos.y + bob);
 
-  ctx.setLineDash([18, 14]);
-  ctx.strokeStyle = 'rgba(34,211,238,0.18)';
-  ctx.lineWidth = 1.5;
-  [H * 0.4, H * 0.64].forEach(ly => {
-    ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(W, ly); ctx.stroke();
-  });
-  ctx.setLineDash([]);
+  const r = 24 * sc;
 
-  ['LEFT', 'CENTRE', 'RIGHT'].forEach((label, i) => {
-    ctx.font = '10px Exo 2, sans-serif';
-    ctx.fillStyle = 'rgba(34,211,238,0.25)';
-    ctx.textAlign = 'left';
-    ctx.fillText(label, 10, LANE_Y[i] + 4);
-  });
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.beginPath(); ctx.ellipse(0, r+5*sc, r*0.7, r*0.18, 0, 0, Math.PI*2); ctx.fill();
 
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  const starSeeds = [
-    [80,30],[200,55],[350,20],[500,45],[680,25],[760,60],
-    [130,80],[420,90],[610,70],[730,100],[50,110],[290,120]
-  ];
-  starSeeds.forEach(([sx, sy]) => {
-    const size = 1.2 + Math.sin(sx * 0.3 + frameCount * 0.03) * 0.6;
-    ctx.beginPath(); ctx.arc(sx, sy, size, 0, Math.PI * 2); ctx.fill();
-  });
+  // Round body
+  ctx.fillStyle = obs.color;
+  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
+
+  // Highlight
+  ctx.fillStyle='rgba(255,255,255,0.18)';
+  ctx.beginPath(); ctx.ellipse(-r*0.3,-r*0.35,r*0.45,r*0.32,-0.4,0,Math.PI*2); ctx.fill();
+
+  // Antenna
+  ctx.strokeStyle = obs.color; ctx.lineWidth = 2.5*sc;
+  ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(0,-r-9*sc); ctx.stroke();
+  ctx.fillStyle='#fde68a';
+  ctx.beginPath(); ctx.arc(0,-r-11*sc,3.5*sc,0,Math.PI*2); ctx.fill();
+
+  // Eyes
+  ctx.fillStyle='white';
+  ctx.beginPath(); ctx.arc(-r*0.32,-r*0.1,r*0.28,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.32,-r*0.1,r*0.28,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1e1b4b';
+  ctx.beginPath(); ctx.arc(-r*0.28,-r*0.06,r*0.14,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.36,-r*0.06,r*0.14,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='white';
+  ctx.beginPath(); ctx.arc(-r*0.34,-r*0.12,r*0.05,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.30,-r*0.12,r*0.05,0,Math.PI*2); ctx.fill();
+
+  // Cheeks
+  ctx.fillStyle = obs.cheek; ctx.globalAlpha=0.7;
+  ctx.beginPath(); ctx.ellipse(-r*0.55,r*0.25,r*0.16,r*0.1,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.55,r*0.25,r*0.16,r*0.1,0,0,Math.PI*2); ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Smile
+  ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=1.8*sc; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(0,r*0.1,r*0.32,0.15*Math.PI,0.85*Math.PI); ctx.stroke();
+
+  ctx.restore();
 }
 
-/* ═══════════════════════════════════════
+/* ════════════════════════
    START SCREEN
-═══════════════════════════════════════ */
+════════════════════════ */
 function drawStartScreen() {
-  drawBackground();
+  drawTrack();
+  drawCharacter();
 
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff';
-  ctx.font = "bold 30px 'Orbitron', monospace";
-  ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 20;
-  ctx.fillText('SIDE RUNNER', W / 2, H / 2 - 90);
-  ctx.shadowBlur = 0;
+  ctx.fillStyle='rgba(5,1,18,0.6)'; ctx.fillRect(0,0,W,H);
 
-  ctx.font = "13px 'Exo 2', sans-serif";
-  ctx.fillStyle = 'rgba(233,213,255,0.75)';
-  ctx.fillText('Dodge friendly critters across 3 lanes — take your time', W / 2, H / 2 - 52);
+  ctx.textAlign='center';
+  ctx.font="bold 30px 'Orbitron'";
+  ctx.fillStyle='#fff';
+  ctx.shadowColor='#22d3ee'; ctx.shadowBlur=22;
+  ctx.fillText('SIDE RUNNER', W/2, H/2-100);
+  ctx.shadowBlur=0;
 
-  ctx.fillStyle = 'rgba(34,211,238,0.1)';
-  ctx.strokeStyle = 'rgba(34,211,238,0.4)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.roundRect(W/2 - 200, H/2 - 35, 400, 70, 12); ctx.fill(); ctx.stroke();
+  ctx.font="13px 'Exo 2'";
+  ctx.fillStyle='rgba(165,243,252,0.75)';
+  ctx.fillText('Run down the path and dodge friendly critters as they approach', W/2, H/2-64);
 
-  ctx.font = "11px 'Exo 2', sans-serif";
-  ctx.fillStyle = '#22d3ee';
-  ctx.fillText('ANKLE MOVEMENT → INVERSION  =  LEFT   |   EVERSION  =  RIGHT', W / 2, H / 2 - 8);
-  ctx.fillStyle = 'rgba(233,213,255,0.5)';
-  ctx.fillText('(Keyboard: ← → Arrow Keys or A / D)', W / 2, H / 2 + 16);
+  ctx.fillStyle='rgba(34,211,238,0.1)';
+  ctx.strokeStyle='rgba(34,211,238,0.4)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.roundRect(W/2-215,H/2-46,430,70,12); ctx.fill(); ctx.stroke();
 
-  drawRobot(W / 2, H / 2 + 95, 1.1);
+  ctx.font="11px 'Exo 2'"; ctx.fillStyle='#22d3ee';
+  ctx.fillText('ANKLE INVERSION = DODGE LEFT   |   ANKLE EVERSION = DODGE RIGHT', W/2, H/2-20);
+  ctx.fillStyle='rgba(165,243,252,0.5)';
+  ctx.fillText('(Keyboard: ← A = Left  —  → D = Right)', W/2, H/2+2);
 
-  const pulse = 0.6 + 0.4 * Math.sin(frameCount * 0.07);
-  ctx.fillStyle = `rgba(240,171,252,${pulse})`;
-  ctx.font = "15px 'Orbitron', monospace";
-  ctx.fillText('PRESS ANY KEY OR CLICK TO START', W / 2, H / 2 + 168);
+  const pulse=0.6+0.4*Math.sin(frameCount*0.07);
+  ctx.fillStyle=`rgba(34,211,238,${pulse})`;
+  ctx.font="15px 'Orbitron'";
+  ctx.fillText('PRESS ANY KEY OR CLICK TO START', W/2, H/2+130);
 }
 
-/* ═══════════════════════════════════════
+/* ════════════════════════
    GAME OVER SCREEN
-═══════════════════════════════════════ */
+════════════════════════ */
 function drawGameOver() {
-  ctx.fillStyle = 'rgba(10,0,30,0.82)';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle='rgba(5,1,18,0.85)'; ctx.fillRect(0,0,W,H);
 
-  ctx.fillStyle = 'rgba(30,10,70,0.95)';
-  ctx.strokeStyle = 'rgba(168,85,247,0.7)';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.roundRect(W/2 - 240, H/2 - 200, 480, 400, 18); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(5,1,24,0.97)';
+  ctx.strokeStyle='rgba(34,211,238,0.65)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(W/2-245,H/2-205,490,415,18); ctx.fill(); ctx.stroke();
 
-  ctx.textAlign = 'center';
-  ctx.font = "bold 28px 'Orbitron', monospace";
-  ctx.fillStyle = '#f0abfc';
-  ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 18;
-  ctx.fillText('SESSION COMPLETE', W / 2, H/2 - 152);
-  ctx.shadowBlur = 0;
+  ctx.textAlign='center';
+  ctx.font="bold 28px 'Orbitron'"; ctx.fillStyle='#22d3ee';
+  ctx.shadowColor='#22d3ee'; ctx.shadowBlur=18;
+  ctx.fillText('SESSION COMPLETE', W/2, H/2-158);
+  ctx.shadowBlur=0;
 
-  ctx.strokeStyle = 'rgba(168,85,247,0.4)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(W/2 - 200, H/2 - 130); ctx.lineTo(W/2 + 200, H/2 - 130); ctx.stroke();
+  ctx.strokeStyle='rgba(34,211,238,0.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2-205,H/2-134); ctx.lineTo(W/2+205,H/2-134); ctx.stroke();
 
-  ctx.font = "13px 'Exo 2', sans-serif";
-  ctx.fillStyle = 'rgba(233,213,255,0.6)';
-  ctx.fillText('FINAL SCORE', W/2, H/2 - 100);
-  ctx.font = "bold 52px 'Orbitron', monospace";
-  ctx.fillStyle = '#fff';
-  ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 14;
-  ctx.fillText(score, W/2, H/2 - 54);
-  ctx.shadowBlur = 0;
+  ctx.font="13px 'Exo 2'"; ctx.fillStyle='rgba(165,243,252,0.55)';
+  ctx.fillText('FINAL SCORE', W/2, H/2-106);
+  ctx.font="bold 52px 'Orbitron'"; ctx.fillStyle='#fff';
+  ctx.shadowColor='#22d3ee'; ctx.shadowBlur=14;
+  ctx.fillText(score, W/2, H/2-56);
+  ctx.shadowBlur=0;
 
-  ctx.strokeStyle = 'rgba(168,85,247,0.3)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(W/2 - 200, H/2 - 26); ctx.lineTo(W/2 + 200, H/2 - 26); ctx.stroke();
+  ctx.strokeStyle='rgba(34,211,238,0.25)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2-205,H/2-28); ctx.lineTo(W/2+205,H/2-28); ctx.stroke();
 
-  ctx.font = "12px 'Orbitron', monospace";
-  ctx.fillStyle = '#22d3ee';
-  ctx.fillText('ANKLE MOVEMENT REPORT', W/2, H/2 + 2);
+  ctx.font="12px 'Orbitron'"; ctx.fillStyle='#22d3ee';
+  ctx.fillText('ANKLE MOVEMENT REPORT', W/2, H/2-2);
 
-  const stats = [
-    { label: 'TOTAL MOVES',  value: moveCount,  color: '#f0abfc' },
-    { label: 'LEFT  (Inversion)',  value: leftMoves,  color: '#22d3ee' },
-    { label: 'RIGHT  (Eversion)', value: rightMoves, color: '#4ade80' },
+  const stats=[
+    {label:'TOTAL MOVES',      value:moveCount,   color:'#22d3ee'},
+    {label:'LEFT (Inversion)', value:leftMoves,   color:'#a855f7'},
+    {label:'RIGHT (Eversion)', value:rightMoves,  color:'#4ade80'},
   ];
-
-  stats.forEach((stat, i) => {
-    const bx = W/2 - 195 + i * 132;
-    const by = H/2 + 22;
-
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    ctx.strokeStyle = 'rgba(168,85,247,0.35)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.roundRect(bx, by, 124, 78, 10); ctx.fill(); ctx.stroke();
-
-    ctx.font = "bold 30px 'Orbitron', monospace";
-    ctx.fillStyle = stat.color;
-    ctx.shadowColor = stat.color; ctx.shadowBlur = 10;
-    ctx.fillText(stat.value, bx + 62, by + 44);
-    ctx.shadowBlur = 0;
-
-    ctx.font = "9px 'Exo 2', sans-serif";
-    ctx.fillStyle = 'rgba(233,213,255,0.55)';
-    ctx.fillText(stat.label, bx + 62, by + 64);
+  stats.forEach((stat,i)=>{
+    const bx=W/2-200+i*136, by=H/2+18;
+    ctx.fillStyle='rgba(255,255,255,0.04)';
+    ctx.strokeStyle='rgba(34,211,238,0.25)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect(bx,by,128,80,10); ctx.fill(); ctx.stroke();
+    ctx.font="bold 30px 'Orbitron'"; ctx.fillStyle=stat.color;
+    ctx.shadowColor=stat.color; ctx.shadowBlur=10;
+    ctx.fillText(stat.value, bx+64, by+46);
+    ctx.shadowBlur=0;
+    ctx.font="9px 'Exo 2'"; ctx.fillStyle='rgba(165,243,252,0.5)';
+    ctx.fillText(stat.label, bx+64, by+66);
   });
 
-  const barW = 380;
-  const barX = W/2 - barW/2;
-  const barY = H/2 + 120;
+  const barW=390, barX=W/2-barW/2, barY=H/2+118;
+  ctx.font="10px 'Exo 2'"; ctx.fillStyle='rgba(165,243,252,0.5)'; ctx.textAlign='center';
+  ctx.fillText('MOVEMENT BALANCE', W/2, barY-7);
+  ctx.fillStyle='rgba(255,255,255,0.07)';
+  ctx.beginPath(); ctx.roundRect(barX,barY,barW,14,7); ctx.fill();
+  const total=leftMoves+rightMoves||1;
+  const lr=leftMoves/total;
+  if(lr>0){ ctx.fillStyle='#a855f7'; ctx.beginPath(); ctx.roundRect(barX,barY,barW*lr,14,7); ctx.fill(); }
+  if(1-lr>0){ ctx.fillStyle='#4ade80'; ctx.beginPath(); ctx.roundRect(barX+barW*lr,barY,barW*(1-lr),14,7); ctx.fill(); }
+  ctx.font="9px 'Exo 2'"; ctx.fillStyle='#a855f7'; ctx.textAlign='left';
+  ctx.fillText(`LEFT ${Math.round(lr*100)}%`, barX, barY+28);
+  ctx.fillStyle='#4ade80'; ctx.textAlign='right';
+  ctx.fillText(`RIGHT ${Math.round((1-lr)*100)}%`, barX+barW, barY+28);
+  ctx.textAlign='center';
 
-  ctx.font = "10px 'Exo 2', sans-serif";
-  ctx.fillStyle = 'rgba(233,213,255,0.5)';
-  ctx.fillText('MOVEMENT BALANCE', W/2, barY - 6);
+  ctx.fillStyle='rgba(34,211,238,0.16)'; ctx.strokeStyle='#22d3ee'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.roundRect(W/2-200,H/2+158,178,42,50); ctx.fill(); ctx.stroke();
+  ctx.font="13px 'Orbitron'"; ctx.fillStyle='#fff';
+  ctx.fillText('▶  PLAY AGAIN', W/2-111, H/2+185);
 
-  ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  ctx.beginPath(); ctx.roundRect(barX, barY, barW, 14, 7); ctx.fill();
-
-  const total = leftMoves + rightMoves || 1;
-  const leftRatio = leftMoves / total;
-  if (leftRatio > 0) {
-    ctx.fillStyle = '#22d3ee';
-    ctx.beginPath(); ctx.roundRect(barX, barY, barW * leftRatio, 14, 7); ctx.fill();
-  }
-  const rightRatio = rightMoves / total;
-  if (rightRatio > 0) {
-    ctx.fillStyle = '#4ade80';
-    ctx.beginPath(); ctx.roundRect(barX + barW * leftRatio, barY, barW * rightRatio, 14, 7); ctx.fill();
-  }
-
-  ctx.font = "9px 'Exo 2', sans-serif";
-  ctx.fillStyle = '#22d3ee';
-  ctx.textAlign = 'left';
-  ctx.fillText(`LEFT ${Math.round(leftRatio*100)}%`, barX, barY + 28);
-  ctx.fillStyle = '#4ade80';
-  ctx.textAlign = 'right';
-  ctx.fillText(`RIGHT ${Math.round((1-leftRatio)*100)}%`, barX + barW, barY + 28);
-  ctx.textAlign = 'center';
-
-  ctx.fillStyle = 'rgba(34,211,238,0.2)';
-  ctx.strokeStyle = '#22d3ee';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.roundRect(W/2 - 195, H/2 + 155, 175, 40, 50); ctx.fill(); ctx.stroke();
-  ctx.font = "13px 'Orbitron', monospace";
-  ctx.fillStyle = '#fff';
-  ctx.fillText('▶  PLAY AGAIN', W/2 - 107, H/2 + 181);
-
-  ctx.fillStyle = 'rgba(168,85,247,0.2)';
-  ctx.strokeStyle = '#a855f7';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.roundRect(W/2 + 20, H/2 + 155, 175, 40, 50); ctx.fill(); ctx.stroke();
-  ctx.font = "13px 'Orbitron', monospace";
-  ctx.fillStyle = '#e9d5ff';
-  ctx.fillText('← MENU', W/2 + 107, H/2 + 181);
+  ctx.fillStyle='rgba(168,85,247,0.18)'; ctx.strokeStyle='#a855f7'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.roundRect(W/2+22,H/2+158,178,42,50); ctx.fill(); ctx.stroke();
+  ctx.font="13px 'Orbitron'"; ctx.fillStyle='#e9d5ff';
+  ctx.fillText('← MENU', W/2+111, H/2+185);
 }
 
-let robotBounce = 0;
-
-/* ═══════════════════════════════════════
-   MAIN GAME LOOP
-═══════════════════════════════════════ */
+/* ════════════════════════
+   MAIN LOOP
+════════════════════════ */
 function loop() {
   requestAnimationFrame(loop);
   frameCount++;
+  roadOffset += speed * 0.0018;
 
-  if (!started) {
-    drawStartScreen();
-    return;
-  }
+  if(!started){ drawStartScreen(); return; }
 
-  if (gameOver) {
-    drawBackground();
-    obstacles.forEach(obs => drawObstacle(obs));
-    drawRobot(120, robotY, 1.0);
+  if(gameOver){
+    drawTrack();
+    obstacles.forEach(drawObstacle);
+    drawCharacter();
     drawGameOver();
     return;
   }
 
-  bgOffset += speed * 0.6;
-
-  const diff = targetY - robotY;
-  robotY += diff * 0.15;
-
-  robotBounce = Math.sin(frameCount * 0.22) * 4;
+  laneT = Math.min(1, laneT + 0.13);
 
   // Gentle difficulty ramp, capped at MAX_SPEED
-  if (frameCount % DIFFICULTY_STEP_FRAMES === 0 && speed < MAX_SPEED) {
-    speed    += 0.2;
-    spawnRate = Math.max(110, spawnRate - 6);
+  if(frameCount%DIFFICULTY_STEP_FRAMES===0 && speed<MAX_SPEED){
+    speed   +=0.25;
+    spawnRate=Math.max(85, spawnRate-5);
   }
 
   spawnTimer++;
-  if (spawnTimer >= spawnRate) {
-    spawnObstacle();
-    spawnTimer = 0;
-  }
+  if(spawnTimer>=spawnRate){ spawnObstacles(); spawnTimer=0; }
 
-  for (let i = obstacles.length - 1; i >= 0; i--) {
-    const obs = obstacles[i];
-    obs.x -= speed;
+  for(let i=obstacles.length-1;i>=0;i--){
+    const obs=obstacles[i];
+    obs.depth += speed * 0.0020;
 
-    if (!obs.passed && obs.x + obs.r < 100) {
-      obs.passed = true;
-      score++;
-      document.getElementById('hud-score').textContent = score;
+    if(!obs.passed && obs.depth > 0.88){
+      obs.passed=true; score++;
+      document.getElementById('hud-score').textContent=score;
     }
+    if(obs.depth > 1.05){ obstacles.splice(i,1); continue; }
 
-    if (obs.x + obs.r < 0) {
-      obstacles.splice(i, 1);
-      continue;
-    }
-
-    const rLeft  = 100 - 16;
-    const rRight = 100 + 16;
-    const rTop   = robotY - 28;
-    const rBot   = robotY + 28;
-
-    const oLeft  = obs.x - obs.r;
-    const oRight = obs.x + obs.r;
-    const oTop   = obs.y  - obs.r;
-    const oBot   = obs.y  + obs.r;
-
-    if (rRight > oLeft && rLeft < oRight && rBot > oTop && rTop < oBot) {
-      gameOver = true;
+    if(obs.depth > 0.80 && obs.depth < 0.96 && obs.lane===currentLane && laneT>0.7){
+      gameOver=true;
     }
   }
 
-  drawBackground();
-  obstacles.forEach(obs => drawObstacle(obs));
-  drawRobot(100, robotY + robotBounce, 1.0);
+  drawTrack();
+  obstacles.forEach(drawObstacle);
+  drawCharacter();
 }
 
-/* ═══════════════════════════════════════
+/* ════════════════════════
    INPUT
-═══════════════════════════════════════ */
-function moveLeft() {
-  if (gameOver || !started) return;
-  if (currentLane > 0) {
-    currentLane--;
-    targetY = LANE_Y[currentLane];
-    moveCount++;
-    leftMoves++;
-    document.getElementById('hud-moves').textContent = moveCount;
+════════════════════════ */
+function moveLeft(){
+  if(gameOver||!started) return;
+  if(currentLane>0){
+    prevLane=currentLane; currentLane--; laneT=0;
+    moveCount++; leftMoves++;
+    document.getElementById('hud-moves').textContent=moveCount;
+  }
+}
+function moveRight(){
+  if(gameOver||!started) return;
+  if(currentLane<2){
+    prevLane=currentLane; currentLane++; laneT=0;
+    moveCount++; rightMoves++;
+    document.getElementById('hud-moves').textContent=moveCount;
   }
 }
 
-function moveRight() {
-  if (gameOver || !started) return;
-  if (currentLane < LANE_COUNT - 1) {
-    currentLane++;
-    targetY = LANE_Y[currentLane];
-    moveCount++;
-    rightMoves++;
-    document.getElementById('hud-moves').textContent = moveCount;
-  }
-}
-
-document.addEventListener('keydown', (e) => {
-  if (!started) { started = true; return; }
-  if (gameOver) return;
-  if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') moveLeft();
-  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') moveRight();
+document.addEventListener('keydown', e=>{
+  if(!started){started=true;return;}
+  if(gameOver) return;
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') moveLeft();
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') moveRight();
 });
 
-canvas.addEventListener('click', (e) => {
-  if (!started) { started = true; return; }
-
-  if (gameOver) {
-    const rect = canvas.getBoundingClientRect();
-    const cx   = (e.clientX - rect.left) * (W / rect.width);
-    const cy   = (e.clientY - rect.top)  * (H / rect.height);
-
-    if (cx > W/2 - 195 && cx < W/2 - 20 && cy > H/2 + 155 && cy < H/2 + 195) {
-      resetGame();
-    }
-    if (cx > W/2 + 20 && cx < W/2 + 195 && cy > H/2 + 155 && cy < H/2 + 195) {
-      window.location.href = 'select.html';
-    }
+canvas.addEventListener('click', e=>{
+  if(!started){started=true;return;}
+  if(gameOver){
+    const rect=canvas.getBoundingClientRect();
+    const cx=(e.clientX-rect.left)*(W/rect.width);
+    const cy=(e.clientY-rect.top)*(H/rect.height);
+    if(cx>W/2-200&&cx<W/2-22&&cy>H/2+158&&cy<H/2+200) resetGame();
+    if(cx>W/2+22&&cx<W/2+200&&cy>H/2+158&&cy<H/2+200) window.location.href='select.html';
     return;
   }
-
-  const rect = canvas.getBoundingClientRect();
-  const cx   = (e.clientX - rect.left) * (W / rect.width);
-  if (cx < W / 2) moveLeft();
-  else             moveRight();
+  const rect=canvas.getBoundingClientRect();
+  const cx=(e.clientX-rect.left)*(W/rect.width);
+  if(cx<W/2) moveLeft(); else moveRight();
 });
 
-function resetGame() {
-  score       = 0;
-  moveCount   = 0;
-  leftMoves   = 0;
-  rightMoves  = 0;
-  gameOver    = false;
-  started     = true;
-  frameCount  = 0;
-  speed       = 1.6;
-  spawnTimer  = 0;
-  spawnRate   = 170;
-  currentLane = 1;
-  targetY     = LANE_Y[1];
-  robotY      = LANE_Y[1];
-  obstacles   = [];
-  document.getElementById('hud-score').textContent = '0';
-  document.getElementById('hud-moves').textContent = '0';
+function resetGame(){
+  score=0;moveCount=0;leftMoves=0;rightMoves=0;
+  gameOver=false;started=true;frameCount=0;
+  speed=1.6;spawnTimer=0;spawnRate=130;
+  currentLane=1;prevLane=1;laneT=1;
+  obstacles=[];
+  document.getElementById('hud-score').textContent='0';
+  document.getElementById('hud-moves').textContent='0';
 }
 
 loop();
