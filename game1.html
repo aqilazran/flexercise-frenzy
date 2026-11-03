@@ -81,9 +81,9 @@ const W = canvas.width, H = canvas.height;
 ════════════════════════ */
 let score=0, moveCount=0, leftMoves=0, rightMoves=0;
 let gameOver=false, started=false, frameCount=0;
-let speed=1.6, spawnTimer=0, spawnRate=130;
-const MAX_SPEED = 3.4;
-const DIFFICULTY_STEP_FRAMES = 700;
+let speed=1.2, spawnTimer=0, spawnRate=165;
+const MAX_SPEED = 2.55;
+const DIFFICULTY_STEP_FRAMES = 900;
 
 /* ════════════════════════
    PERSPECTIVE TRACK CONFIG
@@ -135,7 +135,8 @@ function spawnObstacles() {
     const palette = CRITTER_COLORS[Math.floor(Math.random()*CRITTER_COLORS.length)];
     obstacles.push({
       lane,
-      depth: 0.02,
+      depth: 0.95,   // initial depth — will be updated each frame from progress
+      progress: 0.0, // 0 = far away, 1 = at character; drives depth for constant visual speed
       color: palette.body,
       cheek: palette.cheek,
       bobSeed: Math.random()*Math.PI*2,
@@ -509,15 +510,21 @@ function loop() {
 
   for(let i=obstacles.length-1;i>=0;i--){
     const obs=obstacles[i];
-    obs.depth += speed * 0.0020;
+    // Advance progress linearly — gives CONSTANT visual speed across the whole screen
+    // depth = 0.95 × √(1−progress) so eased = depth² = 0.9025×(1−progress) is linear
+    obs.progress = Math.min(obs.progress + speed * 0.0019, 1.0);
+    obs.depth = 0.95 * Math.sqrt(Math.max(0.0, 1.0 - obs.progress));
 
-    if(!obs.passed && obs.depth > 0.88){
+    // Score when obstacle has clearly passed the character
+    if(!obs.passed && obs.progress >= 0.97){
       obs.passed=true; score++;
       document.getElementById('hud-score').textContent=score;
     }
-    if(obs.depth > 1.05){ obstacles.splice(i,1); continue; }
+    // Remove cleanly once it fully reaches the character — no bounce, no lingering
+    if(obs.progress >= 1.0){ obstacles.splice(i,1); continue; }
 
-    if(obs.depth > 0.80 && obs.depth < 0.96 && obs.lane===currentLane && laneT>0.7){
+    // Collision: when obstacle is close to character (depth small = near camera)
+    if(obs.depth < 0.22 && obs.depth > 0.01 && obs.lane===currentLane && laneT>0.7){
       gameOver=true;
     }
   }
@@ -572,7 +579,7 @@ canvas.addEventListener('click', e=>{
 function resetGame(){
   score=0;moveCount=0;leftMoves=0;rightMoves=0;
   gameOver=false;started=true;frameCount=0;
-  speed=1.6;spawnTimer=0;spawnRate=130;
+  speed=1.2;spawnTimer=0;spawnRate=165;
   currentLane=1;prevLane=1;laneT=1;
   obstacles=[];
   document.getElementById('hud-score').textContent='0';
