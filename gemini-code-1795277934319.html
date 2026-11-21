@@ -1,0 +1,74 @@
+<!-- Panel Kawalan Sensor Buku Lali (Web Serial) -->
+<div id="rehab-bar" style="position:fixed; top:10px; right:10px; z-index:9999; background:#1e293b; color:#fff; padding:10px 14px; border-radius:8px; font-family:sans-serif; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+  <button id="btn-connect" style="background:#10b981; color:#fff; border:none; padding:6px 10px; border-radius:5px; cursor:pointer; font-weight:bold;">Sambung Sensor</button>
+  <button id="btn-zero" style="background:#3b82f6; color:#fff; border:none; padding:6px 10px; border-radius:5px; cursor:pointer; margin-left:4px;" disabled>Set 0°</button>
+  <div id="angle-display" style="margin-top:6px; font-family:monospace;">Status: Belum sambung</div>
+</div>
+
+<script>
+  let port, writer;
+  let activeKeys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+  // Had sudut selamat pesakit strok (boleh diubah ikut tahap pesakit)
+  const THRESHOLD = {
+    dorsi: 8.0,     // Atas (+8 deg)
+    plantar: -12.0, // Bawah (-12 deg)
+    inv: 10.0,      // Kiri/Dalam (+10 deg)
+    ever: -8.0      // Kanan/Luar (-8 deg)
+  };
+
+  function setVirtualKey(key, shouldPress) {
+    if (activeKeys[key] === shouldPress) return;
+    activeKeys[key] = shouldPress;
+    const eventType = shouldPress ? 'keydown' : 'keyup';
+    window.dispatchEvent(new KeyboardEvent(eventType, { key: key, code: key, bubbles: true }));
+    document.dispatchEvent(new KeyboardEvent(eventType, { key: key, code: key, bubbles: true }));
+  }
+
+  document.getElementById('btn-connect').addEventListener('click', async () => {
+    try {
+      port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+      writer = port.writable.getWriter();
+
+      document.getElementById('btn-connect').textContent = 'Tersambung';
+      document.getElementById('btn-connect').style.background = '#64748b';
+      document.getElementById('btn-zero').disabled = false;
+
+      const decoder = new TextDecoderStream();
+      port.readable.pipeTo(decoder.writable);
+      const reader = decoder.readable.getReader();
+
+      let buffer = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += value;
+        let lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (let line of lines) {
+          try {
+            const data = JSON.parse(line.trim());
+            document.getElementById('angle-display').textContent =
+              `Dorsi/Plantar: ${data.pitch}° | Inv/Ever: ${data.roll}°`;
+
+            // Tukar sudut kepada kawalan permainan
+            setVirtualKey('ArrowUp', data.pitch >= THRESHOLD.dorsi);
+            setVirtualKey('ArrowDown', data.pitch <= THRESHOLD.plantar);
+            setVirtualKey('ArrowLeft', data.roll >= THRESHOLD.inv);
+            setVirtualKey('ArrowRight', data.roll <= THRESHOLD.ever);
+          } catch (e) {}
+        }
+      }
+    } catch (err) {
+      alert('Gagal sambung: Pastikan guna Chrome/Edge dan tutup Serial Monitor Arduino.');
+    }
+  });
+
+  document.getElementById('btn-zero').addEventListener('click', async () => {
+    if (writer) {
+      await writer.write(new TextEncoder().encode('ZERO\n'));
+    }
+  });
+</script>
