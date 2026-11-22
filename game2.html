@@ -57,6 +57,39 @@
       letter-spacing: 1px; z-index: 30; transition: background 0.2s;
     }
     #quit-btn:hover { background: rgba(251,191,36,0.2); }
+  
+    /* ── Ankle device bar ── */
+    #device-bar {
+      position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 10px;
+      max-width: 98vw; padding: 6px 12px; border-radius: 12px; white-space: nowrap;
+      background: rgba(5,1,18,0.86); border: 1px solid rgba(251,191,36,0.45);
+      font: 600 12px 'Exo 2', sans-serif; color: #e2e8f0; z-index: 40;
+    }
+    #device-bar button {
+      font: 700 12px 'Exo 2', sans-serif; color: #fff; cursor: pointer;
+      background: rgba(251,191,36,0.18); border: 1px solid rgba(251,191,36,0.65);
+      border-radius: 50px; padding: 5px 12px; transition: background 0.15s;
+    }
+    #device-bar button:hover { background: rgba(251,191,36,0.38); }
+    #device-bar label { display: flex; align-items: center; gap: 4px; color: #cbd5e1; }
+    #device-bar input[type=number] {
+      width: 46px; padding: 3px 4px; border-radius: 6px; color: #fff;
+      border: 1px solid rgba(251,191,36,0.4); background: rgba(255,255,255,0.07);
+      font: 600 12px 'Exo 2', sans-serif;
+    }
+    #device-bar select {
+      padding: 3px 4px; border-radius: 6px; color: #fff; background: #1a0a3d;
+      border: 1px solid rgba(251,191,36,0.4); font: 600 12px 'Exo 2', sans-serif;
+    }
+    #dev-dot { width: 9px; height: 9px; border-radius: 50%; background: #64748b; flex: none; }
+    #dev-dot.on   { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+    #dev-dot.wait { background: #fbbf24; }
+    #dev-dot.err  { background: #f87171; }
+    #dev-state { color: #94a3b8; max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+    /* On short screens, nudge the game up so the bar never covers it */
+    @media (max-height: 690px) { canvas { margin-bottom: 52px; } }
+    #dev-live  { min-width: 160px; text-align: center; font-weight: 700; color: #fbbf24; font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body>
@@ -71,6 +104,22 @@
 
 <canvas id="gameCanvas" width="820" height="500"></canvas>
 <div id="controls-hint">↑ Arrow / W = Dorsiflexion (Up) &nbsp;|&nbsp; ↓ Arrow / S = Plantarflexion (Down)</div>
+
+<div id="device-bar" role="group" aria-label="Ankle device">
+  <button id="dev-connect" type="button">Connect ankle device</button>
+  <span id="dev-dot"></span><span id="dev-state">Not connected</span>
+  <span id="dev-live">&ndash;</span>
+  <button id="dev-zero" type="button" title="Put the foot in its neutral position, then press Zero">Zero</button>
+  <label title="How far this patient can pull the toes up. The top lane is reached at about 80% of this.">Dorsiflexion
+    <input id="set-a" type="number" min="3" max="60" step="1">&deg;
+  </label>
+  <label title="How far this patient can point the toes down. The bottom lane is reached at about 80% of this.">Plantarflexion
+    <input id="set-b" type="number" min="3" max="60" step="1">&deg;
+  </label>
+  <label title="Tick this if the bird moves the opposite way to the foot">
+    <input id="set-flip" type="checkbox">Flip
+  </label>
+</div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
@@ -630,6 +679,200 @@ function resetGame(){
 }
 
 loop();
+</script>
+<script>
+(function () {
+  'use strict';
+
+  /* ═════════ the only part that differs between the two games ═════════ */
+
+  const CFG = {
+    storeKey: 'anklesync.skyPatrol.v1',
+    axis: 'pitch',                   // dorsiflexion / plantarflexion = toes up / down
+    lanes: 5,
+    defaults: { romA: 10, romB: 20, flip: false },                  // A = dorsiflexion, B = plantarflexion
+    stepLow:  () => moveUp(),
+    stepHigh: () => moveDown(),
+    romFor: (t, S) => t >= 0 ? S.romA : S.romB,
+    describe: (t, S) => {
+      if (Math.abs(t) < 2) return 'Neutral  ' + t.toFixed(1) + '\u00B0';
+      return t > 0 ? '\u25B2 Dorsiflexion  ' + t.toFixed(1) + '\u00B0'
+                   : '\u25BC Plantarflexion  ' + (-t).toFixed(1) + '\u00B0';
+    },
+    onSettings: () => {}
+  };
+  /* ═══════════════════════════════════════════════════════════════════ */
+
+  const $ = id => document.getElementById(id);
+  const SUPPORTED = ('serial' in navigator);
+  const num = (v, lo, hi, d) => { v = parseFloat(v); return isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
+
+  /* ---------- clinician settings (remembered in this browser) ---------- */
+  const S = Object.assign({}, CFG.defaults);
+  try { Object.assign(S, JSON.parse(localStorage.getItem(CFG.storeKey) || '{}')); } catch (e) {}
+  S.romA = num(S.romA, 3, 60, CFG.defaults.romA);
+  S.romB = num(S.romB, 3, 60, CFG.defaults.romB);
+  S.flip = !!S.flip;
+  const save = () => { try { localStorage.setItem(CFG.storeKey, JSON.stringify(S)); } catch (e) {} };
+
+  /* ---------- live data from the ESP32 ---------- */
+  const raw  = { pitch: 0, roll: 0, t: 0 };   // last reading
+  const zero = { pitch: 0, roll: 0 };         // "0 degrees" set by the clinician
+  let tiltSmooth = 0, lastUserInput = 0, lastStep = 0;
+  let port = null, activeReader = null, loopDone = null, opening = false;
+
+  function setStatus(kind, text) {
+    $('dev-dot').className = kind;
+    $('dev-state').textContent = text;
+    $('dev-state').title = text;
+  }
+  const live = text => { $('dev-live').textContent = text; };
+
+  /* ---------- connect / disconnect ---------- */
+  async function openPort(p) {
+    if (port || opening) return;
+    opening = true;
+    try {
+      await p.open({ baudRate: 115200 });
+    } catch (err) {
+      opening = false;
+      setStatus('err', 'Port busy: close the Arduino Serial Monitor');
+      return;
+    }
+    opening = false;
+    port = p;
+    $('dev-connect').textContent = 'Disconnect';
+    setStatus('wait', 'Waiting for data...');
+    loopDone = readLoop(p);
+  }
+
+  async function readLoop(p) {
+    const decoder = new TextDecoderStream();
+    const piped = p.readable.pipeTo(decoder.writable).catch(() => {});
+    activeReader = decoder.readable.getReader();
+    let buf = '';
+    try {
+      for (;;) {
+        const { value, done } = await activeReader.read();
+        if (done) break;
+        buf += value;
+        let i;
+        while ((i = buf.indexOf('\n')) >= 0) {
+          handleLine(buf.slice(0, i).trim());
+          buf = buf.slice(i + 1);
+        }
+        if (buf.length > 400) buf = '';          // protection against junk
+      }
+    } catch (err) { /* cable pulled out */ }
+    try { activeReader.releaseLock(); } catch (e) {}
+    activeReader = null;
+    await piped;
+    try { await p.close(); } catch (e) {}
+    if (port === p) port = null;
+    $('dev-connect').textContent = 'Connect ankle device';
+    setStatus('off', 'Not connected');
+    live('\u2013');
+  }
+
+  async function disconnect() {
+    try { if (activeReader) await activeReader.cancel(); } catch (e) {}
+    if (loopDone) await loopDone;
+  }
+
+  function handleLine(line) {
+    if (line.startsWith('IMU,')) {
+      const a = line.split(',');
+      const pitch = parseFloat(a[1]), roll = parseFloat(a[2]);
+      if (isFinite(pitch) && isFinite(roll)) { raw.pitch = pitch; raw.roll = roll; raw.t = performance.now(); }
+    } else if (line.startsWith('ERR,')) {
+      setStatus('err', line.slice(4));
+    }
+  }
+
+  /* ---------- turn the foot angle into game moves (25 times per second) ---------- */
+  function tick() {
+    if (!port) return;
+    const now = performance.now();
+    if (now - raw.t > 600) {                       // no fresh data
+      setStatus('wait', 'No data: check the IMU wires');
+      live('\u2013');
+      return;
+    }
+    setStatus('on', 'Live');
+
+    // Angle relative to the zero, positive = towards the LOW lane (left lane / top lane)
+    let t = (raw[CFG.axis] - zero[CFG.axis]) * (S.flip ? -1 : 1);
+    tiltSmooth += 0.5 * (t - tiltSmooth);
+    t = tiltSmooth;
+    live(CFG.describe(t, S));
+
+    if (!started || gameOver) return;              // game variables from the main script
+    if (now - lastUserInput < 1500) return;        // clinician just used keyboard / mouse
+    if (now - lastStep < 260) return;              // let the previous move finish animating
+
+    const rom = CFG.romFor(t, S);                  // degrees that count as "full range"
+    const n   = Math.max(-1, Math.min(1, t / rom));
+    const mid = (CFG.lanes - 1) / 2;
+    const lane = mid * (1 - n);                    // where the ankle "points" on the lane scale
+    const HYST = 0.12;                             // stops flicker at lane borders
+    if (lane < currentLane - 0.5 - HYST)      { CFG.stepLow();  lastStep = now; }
+    else if (lane > currentLane + 0.5 + HYST) { CFG.stepHigh(); lastStep = now; }
+  }
+  setInterval(tick, 40);
+
+  /* ---------- buttons and settings ---------- */
+  function wireUi() {
+    $('set-a').value = S.romA;
+    $('set-b').value = S.romB;
+    $('set-flip').checked = S.flip;
+    if ($('set-foot')) $('set-foot').value = S.foot;
+
+    $('set-a').onchange = () => { S.romA = num($('set-a').value, 3, 60, CFG.defaults.romA); $('set-a').value = S.romA; save(); };
+    $('set-b').onchange = () => { S.romB = num($('set-b').value, 3, 60, CFG.defaults.romB); $('set-b').value = S.romB; save(); };
+    $('set-flip').onchange = () => { S.flip = $('set-flip').checked; save(); };
+    if ($('set-foot')) $('set-foot').onchange = () => { S.foot = $('set-foot').value; save(); CFG.onSettings(S); };
+
+    // After any change, give the keyboard back to the game
+    ['set-a', 'set-b', 'set-flip', 'set-foot'].forEach(id => {
+      const el = $(id); if (el) el.addEventListener('change', () => el.blur());
+    });
+
+    $('dev-zero').onclick = e => {
+      zero.pitch = raw.pitch; zero.roll = raw.roll; tiltSmooth = 0;
+      const b = e.currentTarget; b.blur(); b.textContent = 'Zeroed \u2713';
+      setTimeout(() => { b.textContent = 'Zero'; }, 1200);
+    };
+
+    $('dev-connect').onclick = async e => {
+      e.currentTarget.blur();
+      if (!SUPPORTED) { setStatus('err', 'Use Chrome or Edge on a PC'); return; }
+      if (port) { await disconnect(); return; }
+      try { const p = await navigator.serial.requestPort(); await openPort(p); } catch (err) { /* chooser closed */ }
+    };
+
+    // Typing in the boxes must not start the game or move the character
+    $('device-bar').addEventListener('keydown', e => {
+      if (e.target.matches('input,select')) e.stopPropagation();
+    });
+
+    // Keyboard / mouse use by the clinician pauses the ankle control for 1.5 s
+    document.addEventListener('keydown', e => {
+      if (!(e.target.closest && e.target.closest('#device-bar'))) lastUserInput = performance.now();
+    }, true);
+    $('gameCanvas').addEventListener('click', () => { lastUserInput = performance.now(); });
+
+    CFG.onSettings(S);
+  }
+  wireUi();
+
+  /* ---------- reconnect automatically after a page change ---------- */
+  if (SUPPORTED) {
+    navigator.serial.getPorts().then(list => { if (list.length) openPort(list[0]); }).catch(() => {});
+    navigator.serial.addEventListener('connect', e => { openPort(e.target); });
+  } else {
+    setStatus('err', 'Keyboard only: use Chrome or Edge for the device');
+  }
+})();
 </script>
 </body>
 </html>
