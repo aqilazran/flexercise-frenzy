@@ -57,7 +57,7 @@
       letter-spacing: 1px; z-index: 30; transition: background 0.2s;
     }
     #quit-btn:hover { background: rgba(34,211,238,0.2); }
-  
+
     /* ── Ankle device bar ── */
     #device-bar {
       position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%);
@@ -87,7 +87,6 @@
     #dev-dot.wait { background: #fbbf24; }
     #dev-dot.err  { background: #f87171; }
     #dev-state { color: #94a3b8; max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
-    /* On short screens, nudge the game up so the bar never covers it */
     @media (max-height: 690px) { canvas { margin-bottom: 52px; } }
     #dev-live  { min-width: 160px; text-align: center; font-weight: 700; color: #22d3ee; font-variant-numeric: tabular-nums; }
   </style>
@@ -189,8 +188,8 @@ function spawnObstacles() {
     const palette = CRITTER_COLORS[Math.floor(Math.random()*CRITTER_COLORS.length)];
     obstacles.push({
       lane,
-      depth: 0.95,   // initial depth — will be updated each frame from progress
-      progress: 0.0, // 0 = far away, 1 = at character; drives depth for constant visual speed
+      depth: 0.95,
+      progress: 0.0,
       color: palette.body,
       cheek: palette.cheek,
       bobSeed: Math.random()*Math.PI*2,
@@ -233,7 +232,6 @@ function drawTrack() {
   ctx.lineTo(rightBot.x,rightBot.y); ctx.lineTo(W,H);
   ctx.closePath(); ctx.fill();
 
-  // Soft tree silhouettes along the sides (instead of city windows)
   for(let row=0; row<6; row++) {
     for(let col=0; col<3; col++) {
       const d = 0.15+row*0.14;
@@ -244,13 +242,12 @@ function drawTrack() {
       const alpha = 0.35;
 
       ctx.fillStyle = `rgba(34,197,94,${alpha})`;
-      // left tree
       ctx.beginPath();
       ctx.moveTo(leftPt.x-30*sc-col*16*sc, leftPt.y);
       ctx.lineTo(leftPt.x-30*sc-col*16*sc-tw/2, leftPt.y+th);
       ctx.lineTo(leftPt.x-30*sc-col*16*sc+tw/2, leftPt.y+th);
       ctx.closePath(); ctx.fill();
-      // right tree
+
       ctx.beginPath();
       ctx.moveTo(rightPt.x+30*sc+col*16*sc, rightPt.y);
       ctx.lineTo(rightPt.x+30*sc+col*16*sc-tw/2, rightPt.y+th);
@@ -380,25 +377,20 @@ function drawObstacle(obs) {
 
   const r = 24 * sc;
 
-  // Shadow
   ctx.fillStyle='rgba(0,0,0,0.2)';
   ctx.beginPath(); ctx.ellipse(0, r+5*sc, r*0.7, r*0.18, 0, 0, Math.PI*2); ctx.fill();
 
-  // Round body
   ctx.fillStyle = obs.color;
   ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
 
-  // Highlight
   ctx.fillStyle='rgba(255,255,255,0.18)';
   ctx.beginPath(); ctx.ellipse(-r*0.3,-r*0.35,r*0.45,r*0.32,-0.4,0,Math.PI*2); ctx.fill();
 
-  // Antenna
   ctx.strokeStyle = obs.color; ctx.lineWidth = 2.5*sc;
   ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(0,-r-9*sc); ctx.stroke();
   ctx.fillStyle='#fde68a';
   ctx.beginPath(); ctx.arc(0,-r-11*sc,3.5*sc,0,Math.PI*2); ctx.fill();
 
-  // Eyes
   ctx.fillStyle='white';
   ctx.beginPath(); ctx.arc(-r*0.32,-r*0.1,r*0.28,0,Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(r*0.32,-r*0.1,r*0.28,0,Math.PI*2); ctx.fill();
@@ -409,13 +401,11 @@ function drawObstacle(obs) {
   ctx.beginPath(); ctx.arc(-r*0.34,-r*0.12,r*0.05,0,Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(r*0.30,-r*0.12,r*0.05,0,Math.PI*2); ctx.fill();
 
-  // Cheeks
   ctx.fillStyle = obs.cheek; ctx.globalAlpha=0.7;
   ctx.beginPath(); ctx.ellipse(-r*0.55,r*0.25,r*0.16,r*0.1,0,0,Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.ellipse(r*0.55,r*0.25,r*0.16,r*0.1,0,0,Math.PI*2); ctx.fill();
   ctx.globalAlpha=1;
 
-  // Smile
   ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=1.8*sc; ctx.lineCap='round';
   ctx.beginPath(); ctx.arc(0,r*0.1,r*0.32,0.15*Math.PI,0.85*Math.PI); ctx.stroke();
 
@@ -553,7 +543,6 @@ function loop() {
 
   laneT = Math.min(1, laneT + 0.13);
 
-  // Gentle difficulty ramp, capped at MAX_SPEED
   if(frameCount%DIFFICULTY_STEP_FRAMES===0 && speed<MAX_SPEED){
     speed   +=0.25;
     spawnRate=Math.max(85, spawnRate-5);
@@ -564,20 +553,15 @@ function loop() {
 
   for(let i=obstacles.length-1;i>=0;i--){
     const obs=obstacles[i];
-    // Advance progress linearly — gives CONSTANT visual speed across the whole screen
-    // depth = 0.95 × √(1−progress) so eased = depth² = 0.9025×(1−progress) is linear
     obs.progress = Math.min(obs.progress + speed * 0.0019, 1.0);
     obs.depth = 0.95 * Math.sqrt(Math.max(0.0, 1.0 - obs.progress));
 
-    // Score when obstacle has clearly passed the character
     if(!obs.passed && obs.progress >= 0.97){
       obs.passed=true; score++;
       document.getElementById('hud-score').textContent=score;
     }
-    // Remove cleanly once it fully reaches the character — no bounce, no lingering
     if(obs.progress >= 1.0){ obstacles.splice(i,1); continue; }
 
-    // Collision: when obstacle is close to character (depth small = near camera)
     if(obs.depth < 0.22 && obs.depth > 0.01 && obs.lane===currentLane && laneT>0.7){
       gameOver=true;
     }
@@ -647,15 +631,13 @@ loop();
   'use strict';
 
   /* ═════════ the only part that differs between the two games ═════════ */
-
   const CFG = {
     storeKey: 'anklesync.sideRunner.v1',
-    axis: 'roll',                    // inversion / eversion = tilt about the heel-toe axis
+    axis: 'roll',
     lanes: 3,
-    defaults: { foot: 'right', romA: 15, romB: 10, flip: false },   // A = inversion, B = eversion
+    defaults: { foot: 'right', romA: 15, romB: 10, flip: false },
     stepLow:  () => moveLeft(),
     stepHigh: () => moveRight(),
-    // positive tilt = sole turns LEFT = inversion for a right foot, eversion for a left foot
     romFor: (t, S) => ((t >= 0) === (S.foot === 'right')) ? S.romA : S.romB,
     describe: (t, S) => {
       if (Math.abs(t) < 2) return 'Neutral  ' + t.toFixed(1) + '\u00B0';
@@ -686,8 +668,8 @@ loop();
   const save = () => { try { localStorage.setItem(CFG.storeKey, JSON.stringify(S)); } catch (e) {} };
 
   /* ---------- live data from the ESP32 ---------- */
-  const raw  = { pitch: 0, roll: 0, t: 0 };   // last reading
-  const zero = { pitch: 0, roll: 0 };         // "0 degrees" set by the clinician
+  const raw  = { pitch: 0, roll: 0, t: 0 };
+  const zero = { pitch: 0, roll: 0 };
   let tiltSmooth = 0, lastUserInput = 0, lastStep = 0;
   let port = null, activeReader = null, loopDone = null, opening = false;
 
@@ -703,11 +685,10 @@ loop();
     if (port || opening) return;
     opening = true;
     try {
-    await p.open({ baudRate: 115200 });
-    await p.setSignals({ dataTerminalReady: false, requestToSend: true });
-    await new Promise(r => setTimeout(r, 50));
-    await p.setSignals({ dataTerminalReady: false, requestToSend: false });
-  } catch (err) {
+      await p.open({ baudRate: 115200 });
+      await p.setSignals({ dataTerminalReady: false, requestToSend: true });
+      await new Promise(r => setTimeout(r, 50));
+      await p.setSignals({ dataTerminalReady: false, requestToSend: false });
     } catch (err) {
       opening = false;
       setStatus('err', 'Port busy: close the Arduino Serial Monitor');
@@ -735,7 +716,7 @@ loop();
           handleLine(buf.slice(0, i).trim());
           buf = buf.slice(i + 1);
         }
-        if (buf.length > 400) buf = '';          // protection against junk
+        if (buf.length > 400) buf = '';
       }
     } catch (err) { /* cable pulled out */ }
     try { activeReader.releaseLock(); } catch (e) {}
@@ -754,12 +735,21 @@ loop();
   }
 
   function handleLine(line) {
+    if (!line) return;
     if (line.startsWith('IMU,')) {
       const a = line.split(',');
       const pitch = parseFloat(a[1]), roll = parseFloat(a[2]);
       if (isFinite(pitch) && isFinite(roll)) { raw.pitch = pitch; raw.roll = roll; raw.t = performance.now(); }
     } else if (line.startsWith('ERR,')) {
       setStatus('err', line.slice(4));
+    } else if (line.startsWith('#ERROR')) {
+      setStatus('err', line.slice(1));
+    } else {
+      const a = line.split(',');
+      if (a.length >= 2) {
+        const roll = parseFloat(a[0]), pitch = parseFloat(a[1]);
+        if (isFinite(pitch) && isFinite(roll)) { raw.pitch = pitch; raw.roll = roll; raw.t = performance.now(); }
+      }
     }
   }
 
@@ -767,85 +757,70 @@ loop();
   function tick() {
     if (!port) return;
     const now = performance.now();
-    if (now - raw.t > 600) {                       // no fresh data
+    if (now - raw.t > 600) {
       setStatus('wait', 'No data: check the IMU wires');
       live('\u2013');
       return;
     }
     setStatus('on', 'Live');
 
-    // Angle relative to the zero, positive = towards the LOW lane (left lane / top lane)
     let t = (raw[CFG.axis] - zero[CFG.axis]) * (S.flip ? -1 : 1);
     tiltSmooth += 0.5 * (t - tiltSmooth);
     t = tiltSmooth;
     live(CFG.describe(t, S));
 
-    if (!started || gameOver) return;              // game variables from the main script
-    if (now - lastUserInput < 1500) return;        // clinician just used keyboard / mouse
-    if (now - lastStep < 260) return;              // let the previous move finish animating
+    if (!started || gameOver) return;
+    if (now - lastUserInput < 1500) return;
+    if (now - lastStep < 260) return;
 
-    const rom = CFG.romFor(t, S);                  // degrees that count as "full range"
+    const rom = CFG.romFor(t, S);
     const n   = Math.max(-1, Math.min(1, t / rom));
     const mid = (CFG.lanes - 1) / 2;
-    const lane = mid * (1 - n);                    // where the ankle "points" on the lane scale
-    const HYST = 0.12;                             // stops flicker at lane borders
+    const lane = mid * (1 - n);
+    const HYST = 0.12;
     if (lane < currentLane - 0.5 - HYST)      { CFG.stepLow();  lastStep = now; }
     else if (lane > currentLane + 0.5 + HYST) { CFG.stepHigh(); lastStep = now; }
   }
   setInterval(tick, 40);
 
   /* ---------- buttons and settings ---------- */
-  function wireUi() {
-    $('set-a').value = S.romA;
-    $('set-b').value = S.romB;
-    $('set-flip').checked = S.flip;
-    if ($('set-foot')) $('set-foot').value = S.foot;
+  $('dev-connect').addEventListener('click', async () => {
+    if (port) { await disconnect(); return; }
+    try {
+      const p = await navigator.serial.requestPort();
+      await openPort(p);
+    } catch (e) {}
+  });
 
-    $('set-a').onchange = () => { S.romA = num($('set-a').value, 3, 60, CFG.defaults.romA); $('set-a').value = S.romA; save(); };
-    $('set-b').onchange = () => { S.romB = num($('set-b').value, 3, 60, CFG.defaults.romB); $('set-b').value = S.romB; save(); };
-    $('set-flip').onchange = () => { S.flip = $('set-flip').checked; save(); };
-    if ($('set-foot')) $('set-foot').onchange = () => { S.foot = $('set-foot').value; save(); CFG.onSettings(S); };
+  $('dev-zero').addEventListener('click', () => {
+    zero.pitch = raw.pitch;
+    zero.roll  = raw.roll;
+    tiltSmooth = 0;
+  });
 
-    // After any change, give the keyboard back to the game
-    ['set-a', 'set-b', 'set-flip', 'set-foot'].forEach(id => {
-      const el = $(id); if (el) el.addEventListener('change', () => el.blur());
-    });
+  $('set-foot').value   = S.foot;
+  $('set-a').value      = S.romA;
+  $('set-b').value      = S.romB;
+  $('set-flip').checked = S.flip;
 
-    $('dev-zero').onclick = e => {
-      zero.pitch = raw.pitch; zero.roll = raw.roll; tiltSmooth = 0;
-      const b = e.currentTarget; b.blur(); b.textContent = 'Zeroed \u2713';
-      setTimeout(() => { b.textContent = 'Zero'; }, 1200);
-    };
+  $('set-foot').addEventListener('change', () => { S.foot = $('set-foot').value; save(); CFG.onSettings(S); });
+  $('set-a').addEventListener('change', () => { S.romA = num($('set-a').value, 3, 60, CFG.defaults.romA); $('set-a').value = S.romA; save(); });
+  $('set-b').addEventListener('change', () => { S.romB = num($('set-b').value, 3, 60, CFG.defaults.romB); $('set-b').value = S.romB; save(); });
+  $('set-flip').addEventListener('change', () => { S.flip = $('set-flip').checked; save(); });
 
-    $('dev-connect').onclick = async e => {
-      e.currentTarget.blur();
-      if (!SUPPORTED) { setStatus('err', 'Use Chrome or Edge on a PC'); return; }
-      if (port) { await disconnect(); return; }
-      try { const p = await navigator.serial.requestPort(); await openPort(p); } catch (err) { /* chooser closed */ }
-    };
+  document.addEventListener('keydown', e => {
+    if (['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D'].includes(e.key)) lastUserInput = performance.now();
+  });
+  canvas.addEventListener('pointerdown', () => { lastUserInput = performance.now(); });
 
-    // Typing in the boxes must not start the game or move the character
-    $('device-bar').addEventListener('keydown', e => {
-      if (e.target.matches('input,select')) e.stopPropagation();
-    });
-
-    // Keyboard / mouse use by the clinician pauses the ankle control for 1.5 s
-    document.addEventListener('keydown', e => {
-      if (!(e.target.closest && e.target.closest('#device-bar'))) lastUserInput = performance.now();
-    }, true);
-    $('gameCanvas').addEventListener('click', () => { lastUserInput = performance.now(); });
-
-    CFG.onSettings(S);
+  if (!SUPPORTED) {
+    $('dev-connect').disabled = true;
+    setStatus('err', 'Use Chrome or Edge');
+  } else if (navigator.serial) {
+    navigator.serial.addEventListener('disconnect', e => { if (e.target === port) disconnect(); });
   }
-  wireUi();
 
-  /* ---------- reconnect automatically after a page change ---------- */
-  if (SUPPORTED) {
-    navigator.serial.getPorts().then(list => { if (list.length) openPort(list[0]); }).catch(() => {});
-    navigator.serial.addEventListener('connect', e => { openPort(e.target); });
-  } else {
-    setStatus('err', 'Keyboard only: use Chrome or Edge for the device');
-  }
+  CFG.onSettings(S);
 })();
 </script>
 </body>
