@@ -704,6 +704,7 @@ loop();
     opening = true;
     try {
       await p.open({ baudRate: 115200 });
+      await p.setSignals({ dataTerminalReady: false, requestToSend: false });
     } catch (err) {
       opening = false;
       setStatus('err', 'Port busy: close the Arduino Serial Monitor');
