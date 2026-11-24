@@ -57,7 +57,7 @@
       letter-spacing: 1px; z-index: 30; transition: background 0.2s;
     }
     #quit-btn:hover { background: rgba(251,191,36,0.2); }
-  
+
     /* ── Ankle device bar ── */
     #device-bar {
       position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%);
@@ -87,7 +87,6 @@
     #dev-dot.wait { background: #fbbf24; }
     #dev-dot.err  { background: #f87171; }
     #dev-state { color: #94a3b8; max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
-    /* On short screens, nudge the game up so the bar never covers it */
     @media (max-height: 690px) { canvas { margin-bottom: 52px; } }
     #dev-live  { min-width: 160px; text-align: center; font-weight: 700; color: #fbbf24; font-variant-numeric: tabular-nums; }
   </style>
@@ -131,9 +130,9 @@ const W = canvas.width, H = canvas.height;
 ═══════════════════ */
 let score=0, moveCount=0, upMoves=0, downMoves=0;
 let gameOver=false, started=false, frameCount=0;
-let speed=1.5, spawnTimer=0, spawnRate=150;       // was 2.8 / 100
-const MAX_SPEED = 3.4;                             // was 7.5
-const DIFFICULTY_STEP_FRAMES = 750;                // was 450
+let speed=1.5, spawnTimer=0, spawnRate=150;
+const MAX_SPEED = 3.4;
+const DIFFICULTY_STEP_FRAMES = 750;
 
 /* ═══════════════════
    5 LANES
@@ -157,19 +156,15 @@ const stars = Array.from({length: 90}, () => ({
 }));
 
 /* ═══════════════════
-   DRAW BIRD CHARACTER (function name kept as drawPlane internally)
+   DRAW BIRD CHARACTER
 ═══════════════════ */
 function drawPlane(x, y) {
-  // Function name kept as "drawPlane" so the rest of the game logic
-  // (collisions, calls, etc.) doesn't need to change — visuals only.
   ctx.save();
   ctx.translate(x, y);
 
-  // Gentle flap cycle drives both wings
   const flap = Math.sin(frameCount * 0.18);
-  const wingAngle = flap * 0.5; // radians
+  const wingAngle = flap * 0.5;
 
-  // Soft trailing glow behind the bird
   const trail = ctx.createLinearGradient(-55, 0, -8, 0);
   trail.addColorStop(0, 'rgba(251,191,36,0)');
   trail.addColorStop(1, 'rgba(251,191,36,0.35)');
@@ -179,7 +174,7 @@ function drawPlane(x, y) {
   ctx.lineTo(-8, 4);   ctx.lineTo(-55, 4);
   ctx.fill();
 
-  // ── Back wing (slightly behind body, flaps opposite phase for depth) ──
+  // Back wing
   ctx.save();
   ctx.translate(-2, 2);
   ctx.rotate(-wingAngle * 0.8);
@@ -192,7 +187,7 @@ function drawPlane(x, y) {
   ctx.fill();
   ctx.restore();
 
-  // ── Tail feathers ──
+  // Tail feathers
   ctx.fillStyle = '#7c3aed';
   ctx.beginPath();
   ctx.moveTo(-16, -2);
@@ -202,7 +197,7 @@ function drawPlane(x, y) {
   ctx.closePath();
   ctx.fill();
 
-  // ── Round body ──
+  // Round body
   ctx.fillStyle = '#a855f7';
   ctx.beginPath();
   ctx.ellipse(2, 0, 22, 16, 0, 0, Math.PI * 2);
@@ -214,7 +209,7 @@ function drawPlane(x, y) {
   ctx.ellipse(0, 6, 14, 9, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // ── Front wing (flaps on top, casts the main motion) ──
+  // Front wing
   ctx.save();
   ctx.translate(0, -2);
   ctx.rotate(-wingAngle);
@@ -225,13 +220,12 @@ function drawPlane(x, y) {
   ctx.quadraticCurveTo(-18, 4, 4, 8);
   ctx.closePath();
   ctx.fill();
-  // Wing feather lines
   ctx.strokeStyle = 'rgba(124,58,237,0.4)'; ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.moveTo(-6,-2); ctx.lineTo(-26,-7); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-4,2);  ctx.lineTo(-22,2);  ctx.stroke();
   ctx.restore();
 
-  // ── Head ──
+  // Head
   ctx.fillStyle = '#a855f7';
   ctx.beginPath();
   ctx.arc(20, -6, 12, 0, Math.PI * 2);
@@ -267,7 +261,7 @@ function drawPlane(x, y) {
   ctx.beginPath(); ctx.ellipse(18, -2, 3.5, 2.5, 0, 0, Math.PI*2); ctx.fill();
   ctx.globalAlpha = 1;
 
-  // Soft glow outline around whole bird for that AnkleSync neon feel
+  // Soft glow outline
   ctx.shadowColor = '#f0abfc'; ctx.shadowBlur = 12;
   ctx.strokeStyle = 'rgba(240,171,252,0.4)'; ctx.lineWidth = 1.2;
   ctx.beginPath();
@@ -279,7 +273,7 @@ function drawPlane(x, y) {
 }
 
 /* ═══════════════════
-   DRAW FRIENDLY ROCK CRITTER (replaces jagged asteroid)
+   DRAW FRIENDLY ROCK CRITTER
 ═══════════════════ */
 function drawAsteroid(obs) {
   const bob = Math.sin(frameCount * 0.07 + obs.bobSeed) * 3;
@@ -289,11 +283,9 @@ function drawAsteroid(obs) {
 
   const r = obs.r;
 
-  // Soft shadow
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath(); ctx.ellipse(0, r + 6, r * 0.7, r * 0.18, 0, 0, Math.PI*2); ctx.fill();
 
-  // Rounded blob body (slightly irregular but soft, no jagged edges)
   ctx.fillStyle = obs.color;
   ctx.beginPath();
   ctx.moveTo(r, 0);
@@ -305,13 +297,11 @@ function drawAsteroid(obs) {
   ctx.closePath();
   ctx.fill();
 
-  // Highlight
   ctx.fillStyle = 'rgba(255,255,255,0.15)';
   ctx.beginPath();
   ctx.ellipse(-r*0.3, -r*0.35, r*0.4, r*0.28, -0.4, 0, Math.PI*2);
   ctx.fill();
 
-  // Big friendly eyes
   ctx.fillStyle = 'white';
   ctx.beginPath(); ctx.arc(-r*0.3, -r*0.05, r*0.26, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(r*0.3,  -r*0.05, r*0.26, 0, Math.PI*2); ctx.fill();
@@ -322,7 +312,6 @@ function drawAsteroid(obs) {
   ctx.beginPath(); ctx.arc(-r*0.31, -0.05*r, r*0.05, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(r*0.29,  -0.05*r, r*0.05, 0, Math.PI*2); ctx.fill();
 
-  // Smile
   ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1.8; ctx.lineCap='round';
   ctx.beginPath(); ctx.arc(0, r*0.15, r*0.3, 0.15*Math.PI, 0.85*Math.PI); ctx.stroke();
 
@@ -330,7 +319,7 @@ function drawAsteroid(obs) {
 }
 
 /* ═══════════════════
-   DRAW FRIENDLY DRONE (rounder, cuter)
+   DRAW FRIENDLY DRONE
 ═══════════════════ */
 function drawDrone(obs) {
   const bob = Math.sin(frameCount * 0.07 + obs.bobSeed) * 3;
@@ -339,15 +328,12 @@ function drawDrone(obs) {
 
   ctx.shadowColor = '#f472b6'; ctx.shadowBlur = 12;
 
-  // Rounded body
   ctx.fillStyle = '#4b5563';
   ctx.beginPath(); ctx.roundRect(-18, -11, 36, 22, 11); ctx.fill();
 
-  // Soft highlight
   ctx.fillStyle = 'rgba(255,255,255,0.08)';
   ctx.beginPath(); ctx.roundRect(-16, -9, 30, 8, 6); ctx.fill();
 
-  // Friendly face dome
   ctx.fillStyle = '#f472b6';
   ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = 'white';
@@ -359,13 +345,11 @@ function drawDrone(obs) {
   ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=1; ctx.lineCap='round';
   ctx.beginPath(); ctx.arc(0, 2, 4, 0.2*Math.PI, 0.8*Math.PI); ctx.stroke();
 
-  // Soft arms
   ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 3; ctx.lineCap='round';
   [[-22,-12],[22,-12],[-22,12],[22,12]].forEach(([ex,ey]) => {
     ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(ex,ey); ctx.stroke();
   });
 
-  // Gently spinning propellers
   const spin = frameCount * 0.12;
   [[-22,-12],[22,-12],[-22,12],[22,12]].forEach(([px,py]) => {
     ctx.save(); ctx.translate(px,py);
@@ -597,7 +581,6 @@ function loop() {
 
   planeY += (targetY - planeY) * 0.14;
 
-  // Gentle difficulty ramp, capped at MAX_SPEED
   if(frameCount % DIFFICULTY_STEP_FRAMES === 0 && speed < MAX_SPEED) {
     speed    += 0.25;
     spawnRate = Math.max(95, spawnRate - 6);
@@ -685,12 +668,11 @@ loop();
   'use strict';
 
   /* ═════════ the only part that differs between the two games ═════════ */
-
   const CFG = {
     storeKey: 'anklesync.skyPatrol.v1',
-    axis: 'pitch',                   // dorsiflexion / plantarflexion = toes up / down
+    axis: 'pitch',
     lanes: 5,
-    defaults: { romA: 10, romB: 20, flip: false },                  // A = dorsiflexion, B = plantarflexion
+    defaults: { romA: 10, romB: 20, flip: false },
     stepLow:  () => moveUp(),
     stepHigh: () => moveDown(),
     romFor: (t, S) => t >= 0 ? S.romA : S.romB,
@@ -716,8 +698,8 @@ loop();
   const save = () => { try { localStorage.setItem(CFG.storeKey, JSON.stringify(S)); } catch (e) {} };
 
   /* ---------- live data from the ESP32 ---------- */
-  const raw  = { pitch: 0, roll: 0, t: 0 };   // last reading
-  const zero = { pitch: 0, roll: 0 };         // "0 degrees" set by the clinician
+  const raw  = { pitch: 0, roll: 0, t: 0 };
+  const zero = { pitch: 0, roll: 0 };
   let tiltSmooth = 0, lastUserInput = 0, lastStep = 0;
   let port = null, activeReader = null, loopDone = null, opening = false;
 
@@ -734,6 +716,9 @@ loop();
     opening = true;
     try {
       await p.open({ baudRate: 115200 });
+      await p.setSignals({ dataTerminalReady: false, requestToSend: true });
+      await new Promise(r => setTimeout(r, 50));
+      await p.setSignals({ dataTerminalReady: false, requestToSend: false });
     } catch (err) {
       opening = false;
       setStatus('err', 'Port busy: close the Arduino Serial Monitor');
@@ -761,7 +746,7 @@ loop();
           handleLine(buf.slice(0, i).trim());
           buf = buf.slice(i + 1);
         }
-        if (buf.length > 400) buf = '';          // protection against junk
+        if (buf.length > 400) buf = '';
       }
     } catch (err) { /* cable pulled out */ }
     try { activeReader.releaseLock(); } catch (e) {}
@@ -780,12 +765,21 @@ loop();
   }
 
   function handleLine(line) {
+    if (!line) return;
     if (line.startsWith('IMU,')) {
       const a = line.split(',');
       const pitch = parseFloat(a[1]), roll = parseFloat(a[2]);
       if (isFinite(pitch) && isFinite(roll)) { raw.pitch = pitch; raw.roll = roll; raw.t = performance.now(); }
     } else if (line.startsWith('ERR,')) {
       setStatus('err', line.slice(4));
+    } else if (line.startsWith('#ERROR')) {
+      setStatus('err', line.slice(1));
+    } else {
+      const a = line.split(',');
+      if (a.length >= 2) {
+        const roll = parseFloat(a[0]), pitch = parseFloat(a[1]);
+        if (isFinite(pitch) && isFinite(roll)) { raw.pitch = pitch; raw.roll = roll; raw.t = performance.now(); }
+      }
     }
   }
 
@@ -793,28 +787,27 @@ loop();
   function tick() {
     if (!port) return;
     const now = performance.now();
-    if (now - raw.t > 600) {                       // no fresh data
+    if (now - raw.t > 600) {
       setStatus('wait', 'No data: check the IMU wires');
       live('\u2013');
       return;
     }
     setStatus('on', 'Live');
 
-    // Angle relative to the zero, positive = towards the LOW lane (left lane / top lane)
     let t = (raw[CFG.axis] - zero[CFG.axis]) * (S.flip ? -1 : 1);
     tiltSmooth += 0.5 * (t - tiltSmooth);
     t = tiltSmooth;
     live(CFG.describe(t, S));
 
-    if (!started || gameOver) return;              // game variables from the main script
-    if (now - lastUserInput < 1500) return;        // clinician just used keyboard / mouse
-    if (now - lastStep < 260) return;              // let the previous move finish animating
+    if (!started || gameOver) return;
+    if (now - lastUserInput < 1500) return;
+    if (now - lastStep < 260) return;
 
-    const rom = CFG.romFor(t, S);                  // degrees that count as "full range"
+    const rom = CFG.romFor(t, S);
     const n   = Math.max(-1, Math.min(1, t / rom));
     const mid = (CFG.lanes - 1) / 2;
-    const lane = mid * (1 - n);                    // where the ankle "points" on the lane scale
-    const HYST = 0.12;                             // stops flicker at lane borders
+    const lane = mid * (1 - n);
+    const HYST = 0.12;
     if (lane < currentLane - 0.5 - HYST)      { CFG.stepLow();  lastStep = now; }
     else if (lane > currentLane + 0.5 + HYST) { CFG.stepHigh(); lastStep = now; }
   }
@@ -832,7 +825,6 @@ loop();
     $('set-flip').onchange = () => { S.flip = $('set-flip').checked; save(); };
     if ($('set-foot')) $('set-foot').onchange = () => { S.foot = $('set-foot').value; save(); CFG.onSettings(S); };
 
-    // After any change, give the keyboard back to the game
     ['set-a', 'set-b', 'set-flip', 'set-foot'].forEach(id => {
       const el = $(id); if (el) el.addEventListener('change', () => el.blur());
     });
@@ -845,33 +837,29 @@ loop();
 
     $('dev-connect').onclick = async e => {
       e.currentTarget.blur();
-      if (!SUPPORTED) { setStatus('err', 'Use Chrome or Edge on a PC'); return; }
+      if (!SUPPORTED) { setStatus('err', 'Use Chrome or Edge'); return; }
       if (port) { await disconnect(); return; }
-      try { const p = await navigator.serial.requestPort(); await openPort(p); } catch (err) { /* chooser closed */ }
+      try {
+        const p = await navigator.serial.requestPort();
+        await openPort(p);
+      } catch (err) {}
     };
-
-    // Typing in the boxes must not start the game or move the character
-    $('device-bar').addEventListener('keydown', e => {
-      if (e.target.matches('input,select')) e.stopPropagation();
-    });
-
-    // Keyboard / mouse use by the clinician pauses the ankle control for 1.5 s
-    document.addEventListener('keydown', e => {
-      if (!(e.target.closest && e.target.closest('#device-bar'))) lastUserInput = performance.now();
-    }, true);
-    $('gameCanvas').addEventListener('click', () => { lastUserInput = performance.now(); });
-
-    CFG.onSettings(S);
   }
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowUp', 'ArrowDown', 'w', 'W', 's', 'S'].includes(e.key)) lastUserInput = performance.now();
+  });
+  canvas.addEventListener('pointerdown', () => { lastUserInput = performance.now(); });
+
+  if (!SUPPORTED) {
+    $('dev-connect').disabled = true;
+    setStatus('err', 'Use Chrome or Edge');
+  } else if (navigator.serial) {
+    navigator.serial.addEventListener('disconnect', e => { if (e.target === port) disconnect(); });
+  }
+
   wireUi();
-
-  /* ---------- reconnect automatically after a page change ---------- */
-  if (SUPPORTED) {
-    navigator.serial.getPorts().then(list => { if (list.length) openPort(list[0]); }).catch(() => {});
-    navigator.serial.addEventListener('connect', e => { openPort(e.target); });
-  } else {
-    setStatus('err', 'Keyboard only: use Chrome or Edge for the device');
-  }
+  CFG.onSettings(S);
 })();
 </script>
 </body>
