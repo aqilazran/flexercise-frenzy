@@ -703,8 +703,11 @@ loop();
     if (port || opening) return;
     opening = true;
     try {
-      await p.open({ baudRate: 115200 });
-      await p.setSignals({ dataTerminalReady: false, requestToSend: false });
+    await p.open({ baudRate: 115200 });
+    await p.setSignals({ dataTerminalReady: false, requestToSend: true });
+    await new Promise(r => setTimeout(r, 50));
+    await p.setSignals({ dataTerminalReady: false, requestToSend: false });
+  } catch (err) {
     } catch (err) {
       opening = false;
       setStatus('err', 'Port busy: close the Arduino Serial Monitor');
